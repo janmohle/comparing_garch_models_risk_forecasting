@@ -1,0 +1,236 @@
+#########################################################################
+### Returns most important statistics for financial time series data ####
+#########################################################################
+
+ts.main.statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 12, nu = 5) {
+  # Required libraries
+  library(FinTS)
+  library(moments)
+  library(tseries)
+  library(rugarch)
+  
+  #omit na
+  data <- na.omit(data)
+  
+  # Initialize results list
+  results <- list()
+  
+  # Calculate mean
+  results$mean <- mean(data)
+  
+  # Calculate standard deviation
+  results$sd <- sd(data)
+  
+  # Calculate quantiles (0, 0.25, 0.5, 0.75, 1)
+  results$quantiles <- quantile(data)
+  
+  # Calculate skewness
+  results$skewness <- skewness(data)
+  
+  # Calculate kurtosis
+  results$kurtosis <- kurtosis(data)
+  
+  # Perform Ljung-Box test for serial correlation
+  results$Ljung_Box_test <- stats::Box.test(data, lag = lags_Ljung_Box_test, type = 'Ljung-Box')
+  
+  # Perform ARCH test for conditional heteroskedasticity
+  results$ArchTest <- FinTS::ArchTest(data, lags = lags_ArchTest)
+  
+  # Standerdize data
+  data_standerdized <- (data - results$mean) / results$sd
+  
+  # Perform Jaque Bera test for normality
+  results$JB_test <- tseries::jarque.bera.test(data_standerdized)
+  
+  # density plot compared with normal and t distribution
+  density_data <- data.frame(x = data_standerdized)
+  results$density <- ggplot(density_data,
+                            aes(x = x)) +
+    geom_density() +
+    geom_function(fun = function(x) ddist(y = x),
+                  aes(color = "Standard Normal")) +
+    geom_function(fun = function(x) ddist(y = x,
+                                          distribution = 'std',
+                                          shape = nu),
+                  aes(color = "t-Distribution")) +
+    scale_color_manual(values = c("darkgreen", "purple")) +
+    labs(color = "Distributions",
+         title = 'Density Comparison') +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # QQ Plot (normal)
+  quantiles <- data.frame(q_emp = data_standerdized,
+                          p = 1 / length(data_standerdized))
+  quantiles <- quantiles %>%
+    arrange(q_emp) %>%
+    mutate(p = cumsum(p)) %>%
+    slice(1:(n() - 1)) %>%
+    mutate(q_theo = qnorm(p))
+  
+  results$qqplot <- ggplot(quantiles,
+                           aes(x = q_theo,
+                               y = q_emp)) +
+    geom_point() +
+    geom_function(fun = function(x) x,
+                  col = 'red') +
+    labs(title = 'QQ Plot',
+         x = 'Theoretical Quantile',
+         y = 'Empirical Quantile') +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # Significance threshold for ACFs and PACFs
+  significance_threshold <- qnorm(0.975) / sqrt(length(data))
+  
+  # ACF for data
+  acf_values <- acf(data, plot = F)
+  acf_values <- data.frame(lag = acf_values$lag[2:20],
+                           acf = acf_values$acf[2:20])
+  results$acf <- ggplot(acf_values,
+                        aes(x = lag,
+                            y = acf)) +
+    geom_bar(stat = 'identity') +
+    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+               linetype = "dashed",
+               color = "red") +
+    labs(x = "Lag",
+         y = "ACF",
+         title = "ACF Plot") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # PACF for data
+  pacf_values <- pacf(data, plot = F)
+  pacf_values <- data.frame(lag = pacf_values$lag[1:20],
+                            pacf = pacf_values$acf[1:20])
+  results$pacf <- ggplot(pacf_values,
+                         aes(x = lag,
+                             y = pacf)) +
+    geom_bar(stat = 'identity') +
+    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+               linetype = "dashed",
+               color = "red") +
+    labs(x = "Lag",
+         y = "PACF",
+         title = "PACF Plot") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # ACF for squared data
+  acf_values <- acf(data^2, plot = F)
+  acf_values <- data.frame(lag = acf_values$lag[2:20],
+                           acf = acf_values$acf[2:20])
+  results$acf_squared <- ggplot(acf_values,
+                                aes(x = lag,
+                                    y = acf)) +
+    geom_bar(stat = 'identity') +
+    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+               linetype = "dashed",
+               color = "red") +
+    labs(x = "Lag",
+         y = "ACF",
+         title = "ACF Plot Squared") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # PACF for squared data
+  pacf_values <- pacf(data^2, plot = F)
+  pacf_values <- data.frame(lag = pacf_values$lag[1:20],
+                            pacf = pacf_values$acf[1:20])
+  results$pacf_squared <- ggplot(pacf_values,
+                         aes(x = lag,
+                             y = pacf)) +
+    geom_bar(stat = 'identity') +
+    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+               linetype = "dashed",
+               color = "red") +
+    labs(x = "Lag",
+         y = "PACF",
+         title = "PACF Plot Squared") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # CCF for data and squared data
+  ccf_values <- ccf(data^2, data, plot = F)
+  lower <- ceiling(length(ccf_values$lag) / 2) 
+  upper <- lower + 20
+  ccf_values <- data.frame(lag = ccf_values$lag[lower:upper],
+                           ccf = ccf_values$acf[lower:upper])
+  results$ccf <- ggplot(ccf_values,
+                        aes(x = lag,
+                            y = ccf)) +
+    geom_bar(stat = 'identity') +
+    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+               linetype = "dashed",
+               color = "red") +
+    labs(x = "Lag",
+         y = "CCF",
+         title = "CCF Plot Leverage Effect") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  return(results)
+}
+
+
+
+#######################################################################################
+### Returns one observation ahead VaR forecasting (convert data to zoo object first) ###
+#######################################################################################
+
+VaR_forecast_1_ahead_garch <- function(data,
+                                       p = 0.05,
+                                       distribution = 'norm',
+                                       variance.model = list(model = 'sGARCH',
+                                                             garchOrder = c(1,1)),
+                                       mean.model = list(armaOrder = c(0, 0),
+                                                         include.mean = T),
+                                       distribution.model = 'norm',
+                                       solver = 'hybrid') {
+  
+  # Required package
+  require(rugarch)
+  
+  # Omit NA
+  data <- na.omit(data)
+  
+  # Create GARCH specification
+  garch.spec <- ugarchspec(variance.model = variance.model,
+                           mean.model = mean.model,
+                           distribution.model = distribution.model)
+  
+  # Fit GARCH model
+  tryCatch({
+    garch.fit <- ugarchfit(spec = garch.spec,
+                           data = data,
+                           solver = solver)
+  }, error = function(e) {
+    stop("Error in fitting GARCH model: ", conditionMessage(e))
+  })
+  
+  # Forecast 1-ahead
+  tryCatch({
+    forecast <- ugarchforecast(garch.fit, n.ahead = 1)
+  }, error = function(e) {
+    stop("Error in forecasting: ", conditionMessage(e))
+  })
+  
+  # Extract forecasted sigma
+  sigma <- as.numeric(sigma(forecast))
+  
+  
+  # Calculate VaR based on distribution
+  if(distribution == 'norm') {
+    VaR_1_ahead <- qnorm(p) * sigma
+  } else if(distribution == 'std') {
+    df <- coef(garch.fit)['shape'] %>% as.numeric()
+    VaR_1_ahead <- qt(p, df) * sqrt((df - 2) / df) * sigma
+  } else {
+    stop("Invalid distribution argument. Supported options are 'norm' and 'std'.")
+  }
+  
+  return(VaR_1_ahead)
+}
+
+
+
+
+
+
+
+
+
