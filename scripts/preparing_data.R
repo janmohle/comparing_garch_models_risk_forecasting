@@ -1,4 +1,4 @@
-setwd('/Users/janmohle/Library/CloudStorage/OneDrive-Personal/01Studium/01Göttingen/08SoSe_24/Bachelorarbeit/comparing_garch_risk_forecasting')
+#setwd('/Users/janmohle/Library/CloudStorage/OneDrive-Personal/01Studium/01Göttingen/08SoSe_24/Bachelorarbeit/comparing_garch_risk_forecasting')
 
 #needed libraries
 #library(tidyverse)
@@ -36,6 +36,7 @@ GOLD <- read.csv('data/XAUUSD.csv', dec = '.') %>%
   mutate(Date = as.Date(Date, format = '%m/%d/%Y')) %>%
   arrange(Date) %>%
   mutate(Return = c(NA, diff(log(Price))))
+
 
 
 

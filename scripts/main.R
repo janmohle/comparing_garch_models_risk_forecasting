@@ -9,10 +9,15 @@ library(zoo)
 library(rugarch)
 library(FinTS)
 
-source('/Users/janmohle/Library/CloudStorage/OneDrive-Personal/01Studium/01Göttingen/08SoSe_24/Bachelorarbeit/comparing_garch_risk_forecasting/scripts/preparing_data.R')
-source('/Users/janmohle/Library/CloudStorage/OneDrive-Personal/01Studium/01Göttingen/08SoSe_24/Bachelorarbeit/comparing_garch_risk_forecasting/scripts/functions.R')
-source('/Users/janmohle/Library/CloudStorage/OneDrive-Personal/01Studium/01Göttingen/08SoSe_24/Bachelorarbeit/comparing_garch_risk_forecasting/scripts/plots.R')
-#!!!!! if project is set, change wd in source and R file behind source
+source('scripts/preparing_data.R')
+source('scripts/functions.R')
+source('scripts/plots.R')
+
+# Only uncomment, if stepwise variance forecast should be calculated all over again (takes multiple hours to run)
+# Results can also be loaded, if the have already been calculated
+# length_data subsets the input data (mainly used to test code, because whole data set takes a long time to run)
+length_data = 520
+source('scripts/stepwise_sigma_forecasting.R')
 
 DAX.prices.plot
 DAX.returns.plot
@@ -45,6 +50,19 @@ GOLD.statistics <- ts.main.statistics(GOLD$Return)
 # -> no clear leverage effect
 
 
+# Load stepwise forecasted sigma
+load('output/DAX_forecasted_sigma.RData')
+load('output/WIG_forecasted_sigma.RData')
+load('output/BTC_forecasted_sigma.RData')
+load('output/GOLD_forecasted_sigma.RData')
+
+
+
+
+
+
+
+############# DONT RUN !!!!!! ############
 
 #converting retruns into zoo object
 returns <- zoo(WIG$Return, WIG$Date) %>% na.omit()
@@ -101,9 +119,3 @@ ggplot(WIG, aes(x = Date, y = Return)) +
   theme_minimal() +
   labs(title = 'VaR Exceedence Plot') +
   theme(plot.title = element_text(hjust = 0.5))
-
-
-
-
-
-

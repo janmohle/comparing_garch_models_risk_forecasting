@@ -227,10 +227,54 @@ VaR_forecast_1_ahead_garch <- function(data,
 }
 
 
+#######################################################################################
+### Returns one-step-ahead standard deviation forecast                              ###
+#######################################################################################
 
-
-
-
-
+predict_sigma_1_ahead <- function(data, var.spec, dist.spec, spec_i = 'NA', dist = 'NA'){
+  
+  # Specifying garch model
+  spec <- ugarchspec(variance.model = var.spec,
+                     mean.model = armamean,
+                     distribution.model = dist.spec)
+  
+  # Fitting garch model (trying different solvers):
+    # hybrid tests in order: solnp, nlminb, gosolnp, nloptr
+    # if hybrid fails, functions trys lbfgs
+    # if all solver fail, function returns NA
+  fit <- tryCatch(
+    {
+      ugarchfit(spec = spec,
+                data = na.omit(data),
+                solver = 'hybrid')
+    },
+    error = function(e){
+      cat('\nHybrid solver did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,'):', e$message, '\n')
+      
+      tryCatch(
+        {
+          ugarchfit(spec = spec,
+                    data = na.omit(data),
+                    solver = 'hybrid')
+        },
+        error = function(e){
+          cat('\nLbfgs solver failed as well:', e$message, '\n\n')
+          
+          return(NA)
+        }
+      )
+    }
+  )
+    
+  # Forecasting one-step-ahead standard deviation (insert NA if no solver returns result)
+  if(is.na(fit)) {
+    return(NA)
+  } else {
+    forecast <- ugarchforecast(fitORspec = fit,
+                               n.ahead = 1)
+    sigma <- sigma(forecast)
+    return(sigma)
+  }
+}
 
 
