@@ -1,10 +1,17 @@
 #################################################################################################################
-#### Predicting one step ahead sigma across different variance specifications and distribution assumptions ######
+#### Predicting one step ahead VaR and ES across different variance specifications and distribution assumptions #
 #################################################################################################################
 
 # Explanation:
 #  Script calculates forecasts for all data sets across all variance specifications and distribution assumptions
 #  Takes multiple hours to run!!!!
+
+
+# To-do:
+#  Rename sigma to VaR_ES
+#  Include counter for non-converging calculations
+#  Exclude lbfgs from solver in function
+#  Delete second solver trial from function
 
 
 # Subsets data for faster stepwise variance forecasting if length_data is specified
@@ -15,8 +22,12 @@ if(exists('length_data')){
   GOLD <- GOLD[1:length_data,]
 }
 
+
 # Vector of all index names
-indices <- c('DAX', 'WIG', 'BTC', 'GOLD')
+indices <- c('DAX',
+             'WIG',
+             'BTC',
+             'GOLD')
 
 # List of all variance specifications (ADD)
 var.spec.list <- list(spec1 = list(model = 'sGARCH',
@@ -58,15 +69,15 @@ for(index in indices){
   data_dates <- data$Date
   
   # Storing return data as zoo object
-
+  
   returns <- zoo(data_returns, data_dates)
-
-  # Invoking empty list for forecasted sigma values
-  forecasted.sigma.list <- list()
-
+  
+  # Invoking empty list for forecasted VaR and ES values
+  forecasted.VaR.ES.list <- list()
+  
   # Invoking counter for variance specification in current loop over garch specifications
   spec_i <- 0
-
+  
   # Loop over variance specifications
   for (var.spec in var.spec.list) {
     
@@ -78,19 +89,20 @@ for(index in indices){
       # Start time of loop
       start <- Sys.time()
       
-      cat('Current iteration:','Index: ',index_name, ' Spec: ', spec_i, ' Dist: ', dist.spec, '\n')
-      rolling.sigma <- rollapply(returns,
-                                 width = width,
-                                 FUN = function(x) predict_sigma_1_ahead(data = x,
-                                                                         var.spec = var.spec,
-                                                                         dist.spec = dist.spec,
-                                                                         spec_i = spec_i,
-                                                                         dist = dist.spec),
+      cat('Current iteration: ',' Index: ',index_name, ' Spec: ', spec_i, ' Dist: ', dist.spec, '\n')
+      rolling.VaR.ES <- rollapply(returns,
+                                  width = width,
+                                  FUN = function(x) predict_VaR_ES_1_ahead(data = x,
+                                                                          var.spec = var.spec,
+                                                                          dist.spec = dist.spec,
+                                                                          tolerance_lvl = 0.05,
+                                                                          spec_i = spec_i,
+                                                                          dist = dist.spec),
                                  align = 'right')
       
       # Creating list with results
       entryname <- paste0('spec', spec_i, dist.spec)
-      forecasted.sigma.list[[entryname]] <- rolling.sigma
+      forecasted.VaR.ES.list[[entryname]] <- rolling.VaR.ES
       
       
       # End time of loop
@@ -102,34 +114,34 @@ for(index in indices){
     }
   }
   # Linear interpolation of NAs
-  for(i in 1:length(forecasted.sigma.list)){
-    forecasted.sigma.list[[i]] <- na.approx(forecasted.sigma.list[[i]])
-  
-  # Assign forecasted.sigma.list to individual list for each index
-  listname <- paste0(index_name, '.forecasted.sigma')
-  assign(listname, forecasted.sigma.list)
+  for(i in 1:length(forecasted.VaR.ES.list)){
+    forecasted.VaR.ES.list[[i]] <- na.approx(forecasted.VaR.ES.list[[i]])
+    
+    # Assign fforecasted.VaR.ES.list to individual list for each index
+    listname <- paste0(index_name, '.forecasted.VaR.ES')
+    assign(listname, forecasted.VaR.ES.list)
   }
 }
 
 
 #safe result in RData file
-save(DAX.forecasted.sigma,
-     file = 'output/DAX_forecasted_sigma.RData')
+save(DAX.forecasted.VaR.ES,
+     file = 'output/DAX_forecasted_VaR_ES.RData')
 
-save(WIG.forecasted.sigma,
-     file = 'output/WIG_forecasted_sigma.RData')
+save(WIG.forecasted.VaR.ES,
+     file = 'output/WIG_forecasted_VaR_ES.RData')
 
-save(BTC.forecasted.sigma,
-     file = 'output/BTC_forecasted_sigma.RData')
+save(BTC.forecasted.VaR.ES,
+     file = 'output/BTC_forecasted_VaR_ES.RData')
 
-save(GOLD.forecasted.sigma,
-     file = 'output/GOLD_forecasted_sigma.RData')
+save(GOLD.forecasted.VaR.ES,
+     file = 'output/GOLD_forecasted_VaR_ES.RData')
 
 # Remove lists from current session
-rm(list = c('DAX.forecasted.sigma',
-            'WIG.forecasted.sigma',
-            'BTC.forecasted.sigma',
-            'GOLD.forecasted.sigma'))
+rm(list = c('DAX.forecasted.VaR.ES',
+            'WIG.forecasted.VaR.ES',
+            'BTC.forecasted.VaR.ES',
+            'GOLD.forecasted.VaR.ES'))
 
 
 

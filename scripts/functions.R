@@ -228,10 +228,15 @@ VaR_forecast_1_ahead_garch <- function(data,
 
 
 #######################################################################################
-### Returns one-step-ahead standard deviation forecast                              ###
+###             Returns one-step-ahead VaR and ES forecast                          ###
 #######################################################################################
 
-predict_sigma_1_ahead <- function(data, var.spec, dist.spec, spec_i = 'NA', dist = 'NA'){
+predict_VaR_ES_1_ahead <- function(data,
+                                  var.spec,
+                                  dist.spec,
+                                  tolerance_lvl = 0.05,
+                                  spec_i = 'NA',
+                                  dist = 'NA'){
   
   # Specifying garch model
   spec <- ugarchspec(variance.model = var.spec,
@@ -266,14 +271,51 @@ predict_sigma_1_ahead <- function(data, var.spec, dist.spec, spec_i = 'NA', dist
     }
   )
     
-  # Forecasting one-step-ahead standard deviation (insert NA if no solver returns result)
+  # Forecasting one-step-ahead VaR and ES (insert NA if no solver converges)
   if(is.na(fit)) {
     return(NA)
   } else {
+    # Coefficients
+    coef_fit <- coef(fit)
+    
+    # Skewness and shape parameter
+    skew <- coef_fit['skew']
+    shape <- coef_fit['shape']
+    
+    # One-step-ahead forecast of model
     forecast <- ugarchforecast(fitORspec = fit,
                                n.ahead = 1)
+    
+    # Extraction of predicted mean and standard deviation
+    mu <- fitted(forecast)
     sigma <- sigma(forecast)
-    return(sigma)
+    
+    # Function returns pth quantile of current distribution
+    pth_quantile <- function(p) {
+      q <- qdist(distribution = dist.spec,
+                 p = p,
+                 skew = skew,
+                 shape = shape)
+      return(q)
+    }
+      
+    # Calculation of one-step-ahead VaR forecast
+    VaR <- mu + sigma * pth_quantile(p = tolerance_lvl)
+  
+    # Calculation of ES
+    integrated <- integrate(pth_quantile,
+                           lower = 0,
+                           upper = tolerance_lvl)
+    integrated_value <- integrated$value
+
+    ES <- mu + sigma / tolerance_lvl * integrated_value
+    
+    # Combine VaR and ES in list
+    VaR_and_ES <- list(VaR = VaR,
+                       ES = ES)
+    
+    #Return list
+    return(VaR_and_ES)
   }
 }
 

@@ -16,7 +16,7 @@ source('scripts/plots.R')
 # Only uncomment, if stepwise variance forecast should be calculated all over again (takes multiple hours to run)
 # Results can also be loaded, if the have already been calculated
 # length_data subsets the input data (mainly used to test code, because whole data set takes a long time to run)
-length_data = 510
+length_data = 502
 source('scripts/stepwise_sigma_forecasting.R')
 
 DAX.prices.plot
@@ -51,14 +51,14 @@ GOLD.statistics <- ts.main.statistics(GOLD$Return)
 
 
 # Load stepwise forecasted sigma
-load('output/DAX_forecasted_sigma.RData')
-load('output/WIG_forecasted_sigma.RData')
-load('output/BTC_forecasted_sigma.RData')
-load('output/GOLD_forecasted_sigma.RData')
+load('output/DAX_forecasted_VaR_ES.RData')
+load('output/WIG_forecasted_VaR_ES.RData')
+load('output/BTC_forecasted_VaR_ES.RData')
+load('output/GOLD_forecasted_VaR_ES.RData')
 
 
+testfunc('snorm', 'sGARCH')
+DAX.forecasted.VaR.ES$spec1snorm
 
-
-
-
+DAX.forecasted.sigma[['spec2norm']]
 
