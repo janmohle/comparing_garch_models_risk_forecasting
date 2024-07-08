@@ -101,14 +101,13 @@ for(index in indices){
       cat('Iteration needed ', time, ' minutes to run\n')
     }
   }
+  # Linear interpolation of NAs
+  for(i in 1:length(forecasted.sigma.list)){
+    forecasted.sigma.list[[i]] <- na.approx(forecasted.sigma.list[[i]])
+  
   # Assign forecasted.sigma.list to individual list for each index
   listname <- paste0(index_name, '.forecasted.sigma')
   assign(listname, forecasted.sigma.list)
-  
-  # THINK HOW TO ALSO LOOP THROUGH
-  # Linear interpolation for NAs
-  #for(i in 1:length(WIG.forecasted.sigma)){
-   # WIG.forecasted.sigma[[i]] <- na.approx(WIG.forecasted.sigma[[i]])
   }
 }
 
