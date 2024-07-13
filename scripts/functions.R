@@ -168,9 +168,9 @@ ts.main.statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
 
 
 
-#######################################################################################
-### Returns one observation ahead VaR forecasting (convert data to zoo object first) ###
-#######################################################################################
+##############################################################################################
+### Returns one observation ahead VaR forecasting (convert input data to zoo object first) ###
+##############################################################################################
 
 VaR_forecast_1_ahead_garch <- function(data,
                                        p = 0.05,
@@ -227,53 +227,46 @@ VaR_forecast_1_ahead_garch <- function(data,
 }
 
 
-#######################################################################################
-###             Returns one-step-ahead VaR and ES forecast                          ###
-#######################################################################################
+############################################################################################
+### Returns one-step-ahead VaR and ES forecast  (convert input data to zoo object first) ###
+############################################################################################
 
 predict_VaR_ES_1_ahead <- function(data,
-                                  var.spec,
-                                  dist.spec,
-                                  tolerance_lvl = 0.05,
-                                  spec_i = 'NA',
-                                  dist = 'NA'){
+                                   var.spec,
+                                   mean.spec,
+                                   dist.spec,
+                                   tolerance_lvl = 0.05,
+                                   spec_i = 'NA',
+                                   dist = 'NA'){
+  # Omit NAs form data
+  data <- na.omit(data)
   
   # Specifying garch model
   spec <- ugarchspec(variance.model = var.spec,
-                     mean.model = armamean,
+                     mean.model = mean.spec,
                      distribution.model = dist.spec)
   
-  # Fitting garch model (trying different solvers):
-    # hybrid tests in order: solnp, nlminb, gosolnp, nloptr
-    # if hybrid fails, functions trys lbfgs
-    # if all solver fail, function returns NA
+  # Fitting garch model (hybrid automatically trys different solvers: solnp, nlminb, gosolnp, nloptr):
   fit <- tryCatch(
     {
       ugarchfit(spec = spec,
-                data = na.omit(data),
+                data = data,
                 solver = 'hybrid')
     },
     error = function(e){
-      cat('\nHybrid solver did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,'):', e$message, '\n')
+      cat('\nSolvers did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,'):', e$message, '\n\n')
       
-      tryCatch(
-        {
-          ugarchfit(spec = spec,
-                    data = na.omit(data),
-                    solver = 'hybrid')
-        },
-        error = function(e){
-          cat('\nLbfgs solver failed as well:', e$message, '\n\n')
-          
-          return(NA)
-        }
-      )
+      return(NA)
     }
   )
     
   # Forecasting one-step-ahead VaR and ES (insert NA if no solver converges)
   if(is.na(fit)) {
-    return(NA)
+    index.NA <- tail(index(data), 1)
+    VaR <- zoo(NA, index.NA)
+    ES <- zoo(NA, index.NA)
+    VaR_and_ES <- list(VaR = VaR,
+                       ES = ES)
   } else {
     # Coefficients
     coef_fit <- coef(fit)
@@ -313,10 +306,9 @@ predict_VaR_ES_1_ahead <- function(data,
     # Combine VaR and ES in list
     VaR_and_ES <- list(VaR = VaR,
                        ES = ES)
-    
-    #Return list
-    return(VaR_and_ES)
   }
+  #Return list with VaR and ES forecasts
+  return(VaR_and_ES)
 }
 
 

@@ -9,10 +9,6 @@
 
 # To-do:
 #  Rename sigma to VaR_ES
-#  Include counter for non-converging calculations
-#  Exclude lbfgs from solver in function
-#  Delete second solver trial from function
-
 
 # Subsets data for faster stepwise variance forecasting if length_data is specified
 if(exists('length_data')){
@@ -28,6 +24,11 @@ indices <- c('DAX',
              'WIG',
              'BTC',
              'GOLD')
+
+# Subsets indices for faster stepwise variance forecasting if start_index and end_index are specified
+if(exists('start_index') & exists('end_index')){
+  indices <- indices[start_index:end_index]
+}
 
 # List of all variance specifications (ADD)
 var.spec.list <- list(spec1 = list(model = 'sGARCH',
@@ -63,19 +64,20 @@ width = 500
 
 for(index in indices){
   
+  # Extracting returns and dates
   index_name <- index
   data <- get(index)
   data_returns <- data$Return
   data_dates <- data$Date
   
   # Storing return data as zoo object
-  
   returns <- zoo(data_returns, data_dates)
   
-  # Invoking empty list for forecasted VaR and ES values
-  forecasted.VaR.ES.list <- list()
+  # Creating empty list for forecasted VaR and ES values
+  forecasted.VaR.list <- list()
+  forecasted.ES.list <- list()
   
-  # Invoking counter for variance specification in current loop over garch specifications
+  # Creating counter for variance specification in current loop over garch specifications
   spec_i <- 0
   
   # Loop over variance specifications
@@ -93,16 +95,48 @@ for(index in indices){
       rolling.VaR.ES <- rollapply(returns,
                                   width = width,
                                   FUN = function(x) predict_VaR_ES_1_ahead(data = x,
-                                                                          var.spec = var.spec,
-                                                                          dist.spec = dist.spec,
-                                                                          tolerance_lvl = 0.05,
-                                                                          spec_i = spec_i,
-                                                                          dist = dist.spec),
+                                                                           var.spec = var.spec,
+                                                                           mean.spec = armamean,
+                                                                           dist.spec = dist.spec,
+                                                                           tolerance_lvl = 0.05,
+                                                                           spec_i = spec_i,
+                                                                           dist = dist.spec),
                                  align = 'right')
+      
+      
+      
+      # Returning object after rollapply is difficult to handle, because predict_VaR_ES_1_ahead returns list in each iteration
+      # Dates and values for VaR and ES must be extracted and stored in a more handy way
+      
+      # Extract dates
+      dates <- index(rolling.VaR.ES)
+      
+      # Creating data frame for easier extraction of values
+      rolling.VaR.ES.df <- as.data.frame(rolling.VaR.ES)
+      
+      # Extracting VaR and ES  values with loop
+      rolling.VaR.values <- vector()
+      for(obs in rolling.VaR.ES.df[['VaR']]){
+        VaR.of.obs <- as.vector(obs)
+        rolling.VaR.values <- append(rolling.VaR.values, VaR.of.obs)
+      }
+      
+      rolling.ES.values <- vector()
+      for(obs in rolling.VaR.ES.df[['ES']]){
+        ES.of.obs <- as.vector(obs)
+        rolling.ES.values <- append(rolling.ES.values, ES.of.obs)
+      }
+      
+      # Creating clean zoo object for VaR and ES
+      rolling.VaR.zoo <- zoo(rolling.VaR.values, dates)
+      
+      rolling.ES.zoo <- zoo(rolling.ES.values, dates)
+      
       
       # Creating list with results
       entryname <- paste0('spec', spec_i, dist.spec)
-      forecasted.VaR.ES.list[[entryname]] <- rolling.VaR.ES
+      forecasted.VaR.list[[entryname]] <- rolling.VaR.zoo
+      forecasted.ES.list[[entryname]] <- rolling.ES.zoo
       
       
       # End time of loop
@@ -114,34 +148,52 @@ for(index in indices){
     }
   }
   # Linear interpolation of NAs
-  for(i in 1:length(forecasted.VaR.ES.list)){
-    forecasted.VaR.ES.list[[i]] <- na.approx(forecasted.VaR.ES.list[[i]])
+  for(i in 1:length(forecasted.VaR.list)){
+    forecasted.VaR.list[[i]] <- na.approx(forecasted.VaR.list[[i]])
+    forecasted.ES.list[[i]] <- na.approx(forecasted.ES.list[[i]])
     
-    # Assign fforecasted.VaR.ES.list to individual list for each index
-    listname <- paste0(index_name, '.forecasted.VaR.ES')
-    assign(listname, forecasted.VaR.ES.list)
+    # Assign forecasted.VaR.list and forecasted.ES.list to individual list for each index
+    listname.VaR <- paste0(index_name, '.forecasted.VaR')
+    assign(listname.VaR, forecasted.VaR.list)
+    
+    listname.ES <- paste0(index_name, '.forecasted.ES')
+    assign(listname.ES, forecasted.ES.list)
   }
 }
 
+if(save_results == TRUE){
+#save result in RData file
+save(DAX.forecasted.VaR,
+     file = 'output/DAX_forecasted_VaR.RData')
 
-#safe result in RData file
-save(DAX.forecasted.VaR.ES,
-     file = 'output/DAX_forecasted_VaR_ES.RData')
+save(WIG.forecasted.VaR,
+     file = 'output/WIG_forecasted_VaR.RData')
 
-save(WIG.forecasted.VaR.ES,
-     file = 'output/WIG_forecasted_VaR_ES.RData')
+save(BTC.forecasted.VaR,
+     file = 'output/BTC_forecasted_VaR.RData')
 
-save(BTC.forecasted.VaR.ES,
-     file = 'output/BTC_forecasted_VaR_ES.RData')
+save(GOLD.forecasted.VaR,
+     file = 'output/GOLD_forecasted_VaR.RData')
 
-save(GOLD.forecasted.VaR.ES,
-     file = 'output/GOLD_forecasted_VaR_ES.RData')
+save(DAX.forecasted.ES,
+     file = 'output/DAX_forecasted_ES.RData')
+
+save(WIG.forecasted.ES,
+     file = 'output/WIG_forecasted_ES.RData')
+
+save(BTC.forecasted.ES,
+     file = 'output/BTC_forecasted_ES.RData')
+
+save(GOLD.forecasted.ES,
+     file = 'output/GOLD_forecasted_ES.RData')
 
 # Remove lists from current session
-rm(list = c('DAX.forecasted.VaR.ES',
-            'WIG.forecasted.VaR.ES',
-            'BTC.forecasted.VaR.ES',
-            'GOLD.forecasted.VaR.ES'))
-
-
-
+rm(list = c('DAX.forecasted.VaR',
+            'WIG.forecasted.VaR',
+            'BTC.forecasted.VaR',
+            'GOLD.forecasted.VaR',
+            'DAX.forecasted.ES',
+            'WIG.forecasted.ES',
+            'BTC.forecasted.ES',
+            'GOLD.forecasted.ES'))
+}

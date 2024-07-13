@@ -1,3 +1,8 @@
+# TO DO:
+# Lag values accordingly in all lists (still belongs into forecasting script)
+# Change forecasting script name
+
+
 rm(list = ls())
 if (dev.cur() != 1) {
   dev.off()
@@ -16,8 +21,17 @@ source('scripts/plots.R')
 # Only uncomment, if stepwise variance forecast should be calculated all over again (takes multiple hours to run)
 # Results can also be loaded, if the have already been calculated
 # length_data subsets the input data (mainly used to test code, because whole data set takes a long time to run)
-length_data = 502
+length_data = 503
+
+# Indices to include
+start_index = 2
+end_index = 2
+
+# Should results of VaR and ES be saved?
+save_results = FALSE
 source('scripts/stepwise_sigma_forecasting.R')
+
+# Index:  WIG  Spec:  2 , Dist:  ghyp
 
 DAX.prices.plot
 DAX.returns.plot
@@ -50,15 +64,19 @@ GOLD.statistics <- ts.main.statistics(GOLD$Return)
 # -> no clear leverage effect
 
 
-# Load stepwise forecasted sigma
-load('output/DAX_forecasted_VaR_ES.RData')
-load('output/WIG_forecasted_VaR_ES.RData')
-load('output/BTC_forecasted_VaR_ES.RData')
-load('output/GOLD_forecasted_VaR_ES.RData')
+# Load stepwise forecasted VaR and ES
+load('output/DAX_forecasted_VaR.RData')
+load('output/WIG_forecasted_VaR.RData')
+load('output/BTC_forecasted_VaR.RData')
+load('output/GOLD_forecasted_VaR.RData')
+load('output/DAX_forecasted_ES.RData')
+load('output/WIG_forecasted_ES.RData')
+load('output/BTC_forecasted_ES.RData')
+load('output/GOLD_forecasted_ES.RData')
 
 
-testfunc('snorm', 'sGARCH')
-DAX.forecasted.VaR.ES$spec1snorm
 
-DAX.forecasted.sigma[['spec2norm']]
+
+
+
 
