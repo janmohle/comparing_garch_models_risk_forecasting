@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-scripts/old.R
+old/old.R
+old/old_functions.R
 scripts/test.R

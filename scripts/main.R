@@ -1,7 +1,5 @@
 # TO DO:
-# Lag values accordingly in all lists (still belongs into forecasting script)
-# Change forecasting script name
-
+# load all csv files
 
 rm(list = ls())
 if (dev.cur() != 1) {
@@ -21,15 +19,14 @@ source('scripts/plots.R')
 # Only uncomment, if stepwise variance forecast should be calculated all over again (takes multiple hours to run)
 # Results can also be loaded, if the have already been calculated
 # length_data subsets the input data (mainly used to test code, because whole data set takes a long time to run)
-length_data = 503
+length_data = 550
 
 # Indices to include
 start_index = 2
-end_index = 2
+end_index = 3
 
-# Should results of VaR and ES be saved?
-save_results = FALSE
-source('scripts/stepwise_sigma_forecasting.R')
+source('scripts/stepwise_VaR_ES_forecasting.R')
+execution_of_VaR_ES_prediction()
 
 # Index:  WIG  Spec:  2 , Dist:  ghyp
 
@@ -65,15 +62,28 @@ GOLD.statistics <- ts.main.statistics(GOLD$Return)
 
 
 # Load stepwise forecasted VaR and ES
-load('output/DAX_forecasted_VaR.RData')
-load('output/WIG_forecasted_VaR.RData')
-load('output/BTC_forecasted_VaR.RData')
-load('output/GOLD_forecasted_VaR.RData')
-load('output/DAX_forecasted_ES.RData')
-load('output/WIG_forecasted_ES.RData')
-load('output/BTC_forecasted_ES.RData')
-load('output/GOLD_forecasted_ES.RData')
+#DAX.forecasted.VaR <- read.csv('output/DAX_forecasted_VaR.csv')
+#DAX.forecasted.ES  <- read.csv('output/DAX_forecasted_ES.csv')
 
+WIG.forecasted.VaR <- read.csv('output/WIG_forecasted_VaR.csv')
+WIG.forecasted.ES  <- read.csv('output/WIG_forecasted_ES.csv')
+
+BTC.forecasted.VaR <- read.csv('output/BTC_forecasted_VaR.csv')
+BTC.forecasted.ES  <- read.csv('output/BTC_forecasted_ES.csv')
+
+GOLD.forecasted.VaR <- read.csv('output/GOLD_forecasted_VaR.csv')
+GOLD.forecasted.ES  <- read.csv('output/GOLD_forecasted_ES.csv')
+
+
+
+#load('output/DAX_forecasted_VaR.RData')
+#load('output/WIG_forecasted_VaR.RData')
+#load('output/BTC_forecasted_VaR.RData')
+#load('output/GOLD_forecasted_VaR.RData')
+#load('output/DAX_forecasted_ES.RData')
+#load('output/WIG_forecasted_ES.RData')
+#load('output/BTC_forecasted_ES.RData')
+#load('output/GOLD_forecasted_ES.RData')
 
 
 

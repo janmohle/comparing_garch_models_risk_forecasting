@@ -167,66 +167,6 @@ ts.main.statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
 }
 
 
-
-##############################################################################################
-### Returns one observation ahead VaR forecasting (convert input data to zoo object first) ###
-##############################################################################################
-
-VaR_forecast_1_ahead_garch <- function(data,
-                                       p = 0.05,
-                                       distribution = 'norm',
-                                       variance.model = list(model = 'sGARCH',
-                                                             garchOrder = c(1,1)),
-                                       mean.model = list(armaOrder = c(0, 0),
-                                                         include.mean = T),
-                                       distribution.model = 'norm',
-                                       solver = 'hybrid') {
-  
-  # Required package
-  require(rugarch)
-  
-  # Omit NA
-  data <- na.omit(data)
-  
-  # Create GARCH specification
-  garch.spec <- ugarchspec(variance.model = variance.model,
-                           mean.model = mean.model,
-                           distribution.model = distribution.model)
-  
-  # Fit GARCH model
-  tryCatch({
-    garch.fit <- ugarchfit(spec = garch.spec,
-                           data = data,
-                           solver = solver)
-  }, error = function(e) {
-    stop("Error in fitting GARCH model: ", conditionMessage(e))
-  })
-  
-  # Forecast 1-ahead
-  tryCatch({
-    forecast <- ugarchforecast(garch.fit, n.ahead = 1)
-  }, error = function(e) {
-    stop("Error in forecasting: ", conditionMessage(e))
-  })
-  
-  # Extract forecasted sigma
-  sigma <- as.numeric(sigma(forecast))
-  
-  
-  # Calculate VaR based on distribution
-  if(distribution == 'norm') {
-    VaR_1_ahead <- qnorm(p) * sigma
-  } else if(distribution == 'std') {
-    df <- coef(garch.fit)['shape'] %>% as.numeric()
-    VaR_1_ahead <- qt(p, df) * sqrt((df - 2) / df) * sigma
-  } else {
-    stop("Invalid distribution argument. Supported options are 'norm' and 'std'.")
-  }
-  
-  return(VaR_1_ahead)
-}
-
-
 ############################################################################################
 ### Returns one-step-ahead VaR and ES forecast  (convert input data to zoo object first) ###
 ############################################################################################
@@ -236,6 +176,7 @@ predict_VaR_ES_1_ahead <- function(data,
                                    mean.spec,
                                    dist.spec,
                                    tolerance_lvl = 0.05,
+                                   index_name,
                                    spec_i = 'NA',
                                    dist = 'NA'){
   # Omit NAs form data
