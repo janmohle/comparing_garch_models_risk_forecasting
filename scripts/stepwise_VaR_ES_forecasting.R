@@ -3,8 +3,8 @@
 #################################################################################################################
 
 # Explanation:
-#  Script calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder
-#  Takes multiple hours to run!!!!
+#  Script calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder with price and return data of index
+#  Takes multiple hours to run with full data set!!!!
 
 
 # Subsets data for faster stepwise variance forecasting if length_data is specified
@@ -51,16 +51,16 @@ dist.spec.list <-  list(distr1 = 'norm',
                         distr5 = 'sstd',
                         distr6 = 'sged',
                         distr7 = 'ghyp',
-                        distr8 = 'nig',
-                        distr9 = 'ghst',
-                        distr10 = 'jsu')
+                        #distr8 = 'nig', # nig leads to problems (a lot of NaN in spec 3 for GOLD -> Should I exclude it)
+                        #distr9 = 'ghst',  # optimazation takes often too long with this distribution -> Sould I exclude it?
+                        distr10 = 'jsu') # jsu leads to some problems (NaN in sigma in Spec 3 for GOLD -> Should I include it or not?)
 
 
 # Specifying estimation window width
 width = 500
 
-execution_of_VaR_ES_prediction <- function(){
-    
+execution_of_VaR_ES_forecasting <- function(){
+  
   # Loop through indices
   for(index in indices){
     
@@ -105,7 +105,9 @@ execution_of_VaR_ES_prediction <- function(){
                                                                              index_name = index_name,
                                                                              spec_i = spec_i,
                                                                              dist = dist.spec),
-                                   align = 'right')
+                                    align = 'right')
+        # !!!!!!!!Test VaR and ES of last observation (delete in final version)!!!!!!!!!
+        test_VaR_ES <- rolling.VaR.ES
         
         # Returning object after rollapply is difficult to handle, because predict_VaR_ES_1_ahead returns list in each iteration
         # Dates and values for VaR and ES must be extracted and stored in a more handy way
@@ -135,8 +137,10 @@ execution_of_VaR_ES_prediction <- function(){
         rolling.ES.zoo <- zoo(rolling.ES.values, dates)
         
         # Creating list with results
-        entryname <- paste0('spec', spec_i, dist.spec)
+        entryname <- paste0('VaR_spec', spec_i, dist.spec)
         forecasted.VaR.list[[entryname]] <- rolling.VaR.zoo
+        
+        entryname <- paste0('ES_spec', spec_i, dist.spec)
         forecasted.ES.list[[entryname]] <- rolling.ES.zoo
         
         # End time of loop
@@ -148,36 +152,52 @@ execution_of_VaR_ES_prediction <- function(){
       }
     }
     
-      # Linear interpolation of NAs
-      for(i in 1:length(forecasted.VaR.list)){
-        forecasted.VaR.list[[i]] <- na.approx(forecasted.VaR.list[[i]])
-        forecasted.ES.list[[i]] <- na.approx(forecasted.ES.list[[i]])
-      }
+    # Linear interpolation of NAs
+    for(i in 1:length(forecasted.VaR.list)){
+      forecasted.VaR.list[[i]] <- na.approx(forecasted.VaR.list[[i]])
+    }
     
-      # Lead forecasted.VaR.list and forecasted.ES.list
-      for(i in 1:length(forecasted.VaR.list)){
-        forecasted.VaR.list[[i]] <- stats::lag(x = forecasted.VaR.list[[i]],
-                                                   k = -1)
-        forecasted.ES.list[[i]] <- stats::lag(x = forecasted.ES.list[[i]],
-                                                   k = -1)
-      }
-   
-    # Create data frame for VaR and ES
-    forecasted.VaR.data.frame <- data.frame(forecasted.VaR.list)
+    for(i in 1:length(forecasted.ES.list)){
+      forecasted.ES.list[[i]] <- na.approx(forecasted.ES.list[[i]])
+    }
+    
+    # Leading forecasted.VaR.list and forecasted.ES.list
+    for(i in 1:length(forecasted.VaR.list)){
+      forecasted.VaR.list[[i]] <- stats::lag(x = forecasted.VaR.list[[i]],
+                                             k = -1)
+    }
+    
+    for(i in 1:length(forecasted.ES.list)){
+      forecasted.ES.list[[i]] <- stats::lag(x = forecasted.ES.list[[i]],
+                                            k = -1)
+    }
+    
+    # Creating data frame for VaR and ES
+    forecasted.VaR.data.frame <- as.data.frame(forecasted.VaR.list)
     forecasted.VaR.data.frame[['Date']] <- as.Date(rownames(forecasted.VaR.data.frame))
     
-    forecasted.ES.data.frame <- data.frame(forecasted.ES.list)
+    forecasted.ES.data.frame <- as.data.frame(forecasted.ES.list)
     forecasted.ES.data.frame[['Date']] <- as.Date(rownames(forecasted.ES.data.frame))
     
-    # save results in csv file with corresponding name
-    write.csv(x = forecasted.VaR.data.frame,
-              file = paste0('output/', index_name, '_forecasted_VaR.csv'),
-              row.names = FALSE)
+    # Joining VaR and ES data frame to return data frame
+    data <- data %>%
+      left_join(forecasted.VaR.data.frame, by = 'Date') %>%
+      left_join(forecasted.ES.data.frame, by = 'Date')
     
-    write.csv(x = forecasted.ES.data.frame,
-              file = paste0('output/', index_name, '_forecasted_ES.csv'),
+    # Assign exceedence flag: 0 -> no exceedence, 1 -> exceedence
+    for(i in 4:ncol(data)){
+      colname_test <- colnames(data[i])
+      colname_result <- paste0('Exceeded_', colname_test)
+      
+      data[[colname_result]] <- ifelse(data$Return < data[[colname_test]], 1, 0)
+    }
+    
+    # Saving results in csv file with corresponding name
+    write.csv(x = data,
+              file = paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'),
               row.names = FALSE)
   }
+  return(test_VaR_ES) # !!!!!!!!!!!!! Exclude in final version !!!!!!!!!!!!
 }
 
 

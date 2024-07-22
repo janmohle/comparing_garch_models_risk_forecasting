@@ -224,6 +224,12 @@ predict_VaR_ES_1_ahead <- function(data,
     mu <- fitted(forecast)
     sigma <- sigma(forecast)
     
+    # Writing message if sigma cannot be calculated
+    if(is.nan(sigma)){
+      cat('\nSigma cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,')\n\n')
+      sigma <- NA
+    }
+  
     # Function returns pth quantile of current distribution
     pth_quantile <- function(p) {
       q <- qdist(distribution = dist.spec,
@@ -236,12 +242,27 @@ predict_VaR_ES_1_ahead <- function(data,
     # Calculation of one-step-ahead VaR forecast
     VaR <- mu + sigma * pth_quantile(p = tolerance_lvl)
   
+    # Integrate over inverse cdf: from 0 until tolerance level (handling errors gracefully)
+    integrated <- tryCatch(
+      {
+        integrate(pth_quantile,
+                  lower = 0,
+                  upper = tolerance_lvl)
+      }, error = function(e) {
+         cat('\nIntegration did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,'):', e$message, '\n\n')
+        
+         return(NULL)
+      }
+    )
+    
+    # Test if integration worked, if not, assign NA
+    if(is.null(integrated)){
+      integrated_value <- NA
+    } else {
+      integrated_value <- integrated$value      
+    }
+    
     # Calculation of ES
-    integrated <- integrate(pth_quantile,
-                           lower = 0,
-                           upper = tolerance_lvl)
-    integrated_value <- integrated$value
-
     ES <- mu + sigma / tolerance_lvl * integrated_value
     
     # Combine VaR and ES in list
