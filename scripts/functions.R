@@ -2,7 +2,7 @@
 ### Returns most important statistics for financial time series data ####
 #########################################################################
 
-ts.main.statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 12, nu = 5) {
+ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 12, nu = 5) {
   # Required libraries
   library(FinTS)
   library(moments)
@@ -175,7 +175,7 @@ predict_VaR_ES_1_ahead <- function(data,
                                    var.spec,
                                    mean.spec,
                                    dist.spec,
-                                   tolerance_lvl = 0.05,
+                                   tolerance_lvl,
                                    index_name,
                                    spec_i = 'NA',
                                    dist = 'NA'){
@@ -274,3 +274,189 @@ predict_VaR_ES_1_ahead <- function(data,
 }
 
 
+############################################################################################
+###  Kupiec test: Unonditional Coverage VaR (if column name starts with Exceeded)        ###
+############################################################################################
+Kupiec_test <- function(data,
+                        tolerance_lvl){
+  # Initialize empty result list
+  results <- list()
+  
+  for(column in names(data)){
+    is_name_Exceeded <- substr(column, 1, 8)
+    
+    # Test if column is column where test can be deployed
+    if(is_name_Exceeded == 'Exceeded'){
+      column_data <- na.omit(data[[column]])
+      
+      # Calculating number of non-exceedences, exceedences and proportion of exceedences
+      n1 <- sum(column_data)
+      n0 <- length(column_data) - n1
+      prop_exceeded <- n1 / (n1 + n0)
+      
+      # Likelihood Ratio Test
+      L_ur <- prop_exceeded ^ n1 * (1 - prop_exceeded) ^ n0
+      L_r <- tolerance_lvl ^ n1 * (1 - tolerance_lvl) ^ n0
+      LR <- -2 * log(L_r / L_ur)
+      p_value <- pchisq(q = LR,
+                        df = 1,
+                        lower.tail = FALSE)
+      
+      # Storing test results in list
+      result <- list(p_value = p_value,
+                     LR = LR)
+      entry_name <- paste0('Kupiec_p_', substr(column, 10, nchar(column)))
+      results[[entry_name]] <- result
+    }
+  }
+  return(results)
+}
+
+
+############################################################################################
+###  Christofferson 1 test: Independence of (if column name starts with Exceeded)        ###
+############################################################################################
+Christofferson1_test <- function(data){
+  
+  # Initialize empty result list
+  results <- list()
+  for(column in names(data)){
+    
+    is_name_Exceeded <- substr(column, 1, 8)
+    
+    # Test if column is column where test can be deployed
+    
+    if(is_name_Exceeded == 'Exceeded'){
+      
+      # n_ij starts with 0 in for each column
+      n00 <- 0
+      n11 <- 0
+      n01 <- 0
+      n10 <- 0
+      
+      # Omit NAs
+      column_data <- na.omit(data[[column]])
+      
+      # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
+      for(i in 2:length(column_data)){
+        if(column_data[i] == 0 & column_data[i - 1] == 0){
+          n00 <- n00 + 1
+        }
+        else if(column_data[i] == 1 & column_data[i - 1] == 1){
+          n11 <- n11 + 1
+        }
+        else if(column_data[i] == 0 & column_data[i - 1] == 1){
+          n01 <- n01 + 1
+        }
+        else if(column_data[i] == 1 & column_data[i - 1] == 0){
+          n10 <- n10 + 1
+        }
+        else {
+          stop('Error: Values out of domain {0, 1}')
+        }
+      }
+      
+      # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
+      prop_exceeded <- (n01 + n11) / (n00 + n11 + n01 + n10)
+      prop_exceeded0 <- n01 / (n00 + n01)
+      prop_exceeded1 <- n11 / (n10 + n11)
+      
+      # Likelihood Ratio Test
+      L_r <- prop_exceeded ^ (n01 + n11) * (1 - prop_exceeded) ^ (n00 + n10)
+      L_ur <- prop_exceeded0 ^ n01 * (1 - prop_exceeded0) ^ n00 * prop_exceeded1 ^ n11 * (1 - prop_exceeded1) ^ n10
+      LR <- -2 * log(L_r / L_ur)
+      p_value <- pchisq(q = LR,
+                        df = 1,
+                        lower.tail = FALSE)
+      
+      # Storing test result in list
+      result <- list(p_value = p_value,
+                     LR = LR)
+      entry_name <- paste0('Chr1_p_', substr(column, 10, nchar(column)))
+      results[[entry_name]] <- result
+    }
+  }
+  return(results)
+}
+
+############################################################################################
+### Christofferson 2 test: Conditional Coverage VaR (if column name starts with Exceeded) ##
+############################################################################################
+Christofferson2_test <- function(data,
+                                 tolerance_lvl){
+  # Initialize empty result list
+  results <- list()
+  
+  for(column in names(data)){
+    is_name_Exceeded <- substr(column, 1, 8)
+    
+    # Test if column is column where test can be deployed
+    if(is_name_Exceeded == 'Exceeded'){
+      column_data <- na.omit(data[[column]])
+      
+      ##### Coverage test from Kupiec ######
+      
+      # Calculating number of non-exceedences, exceedences and proportion of exceedences
+      n1 <- sum(column_data)
+      n0 <- length(column_data) - n1
+      prop_exceeded <- n1 / (n1 + n0)
+      
+      # Likelihood Ratio Test
+      L_ur <- prop_exceeded ^ n1 * (1 - prop_exceeded) ^ n0
+      L_r <- tolerance_lvl ^ n1 * (1 - tolerance_lvl) ^ n0
+      LR_Kupiec <- -2 * log(L_r / L_ur)
+      
+      #### Independence test (Christofferson 1) ####
+      
+      # n_ij starts with 0 in for each column
+      n00 <- 0
+      n11 <- 0
+      n01 <- 0
+      n10 <- 0
+      
+      # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
+      for(i in 2:length(column_data)){
+        if(column_data[i] == 0 & column_data[i - 1] == 0){
+          n00 <- n00 + 1
+        }
+        else if(column_data[i] == 1 & column_data[i - 1] == 1){
+          n11 <- n11 + 1
+        }
+        else if(column_data[i] == 0 & column_data[i - 1] == 1){
+          n01 <- n01 + 1
+        }
+        else if(column_data[i] == 1 & column_data[i - 1] == 0){
+          n10 <- n10 + 1
+        }
+        else {
+          stop('Error: Values out of domain {0, 1}')
+        }
+      }
+      
+      # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
+      prop_exceeded <- (n01 + n11) / (n00 + n11 + n01 + n10)
+      prop_exceeded0 <- n01 / (n00 + n01)
+      prop_exceeded1 <- n11 / (n10 + n11)
+      
+      # Likelihood Ratio Test
+      L_r <- prop_exceeded ^ (n01 + n11) * (1 - prop_exceeded) ^ (n00 + n10)
+      L_ur <- prop_exceeded0 ^ n01 * (1 - prop_exceeded0) ^ n00 * prop_exceeded1 ^ n11 * (1 - prop_exceeded1) ^ n10
+      LR_Chr1 <- -2 * log(L_r / L_ur)
+      
+      # Sum up likelihood ratio of both test to receive the one of Christofferson 2 test (Conditional Coverage)
+      LR <- LR_Kupiec + LR_Chr1
+      
+      # Calcutating p value (LR ~ X^2(2))
+      p_value <- pchisq(q = LR,
+                        df = 2,
+                        lower.tail = FALSE)
+      
+      # Storing test result in list
+      result <- list(p_value = p_value,
+                     LR = LR)
+      entry_name <- paste0('Chr2_p_', substr(column, 10, nchar(column)))
+      results[[entry_name]] <- result
+    }
+  }
+  return(results)
+}

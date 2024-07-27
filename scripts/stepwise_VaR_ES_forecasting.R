@@ -3,62 +3,36 @@
 #################################################################################################################
 
 # Explanation:
-#  Script calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder with price and return data of index
+#  Function calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder with price and return data of index
 #  Takes multiple hours to run with full data set!!!!
 
+# Subsetting for faster testing
 
-# Subsets data for faster stepwise variance forecasting if length_data is specified
-if(exists('length_data')){
-  DAX <- DAX[1:length_data,]
-  WIG <- WIG[1:length_data,]
-  BTC <- BTC[1:length_data,]
-  GOLD <- GOLD[1:length_data,]
+# Subsets data for faster step wise forecasting if data_include is specified
+if(exists('data_include')){
+  DAX <- DAX[data_include,]
+  WIG <- WIG[data_include,]
+  BTC <- BTC[data_include,]
+  GOLD <- GOLD[data_include,]
+}
+
+# Subsets indices for faster step wise forecasting if index_include specified
+if(exists('index_include')){
+  indices <- indices[index_include]
+}
+
+# Subsets variance specifications for faster step wise forecasting if varspec_include specified
+if(exists('varspec_include')){
+  var.spec.list <- var.spec.list[varspec_include]
+}
+
+# Subsets distribution assumptions for faster step wise forecasting if dist_include specified
+if(exists('dist_include')){
+  dist.spec.list <- dist.spec.list[dist_include]
 }
 
 
-# Vector of all index names
-indices <- c('DAX',
-             'WIG',
-             'BTC',
-             'GOLD')
-
-
-# Subsets indices for faster stepwise variance forecasting if start_index and end_index are specified
-if(exists('start_index') & exists('end_index')){
-  indices <- indices[start_index:end_index]
-}
-
-
-# List of all variance specifications (ADD)
-var.spec.list <- list(spec1 = list(model = 'sGARCH',
-                                   garchOrder = c(1,1)),
-                      spec2 = list(model = 'eGARCH',
-                                   garchOrder = c(1,1)),
-                      spec3 = list(model = 'gjrGARCH',
-                                   garchOrder = c(1, 1)))
-
-
-# ARMA(1,1) as mean model for all estimations (to capture as much dependencies of consecutive observations as possible while still keeping model parcimonious)
-armamean <- list(armaOrder = c(1,1),
-                 include.mean = TRUE)
-
-
-# List of all distribution assumptions
-dist.spec.list <-  list(distr1 = 'norm',
-                        distr2 = 'std',
-                        distr3 = 'ged',
-                        distr4 = 'snorm',
-                        distr5 = 'sstd',
-                        distr6 = 'sged',
-                        distr7 = 'ghyp',
-                        #distr8 = 'nig', # nig leads to problems (a lot of NaN in spec 3 for GOLD -> Should I exclude it)
-                        #distr9 = 'ghst',  # optimazation takes often too long with this distribution -> Sould I exclude it?
-                        distr10 = 'jsu') # jsu leads to some problems (NaN in sigma in Spec 3 for GOLD -> Should I include it or not?)
-
-
-# Specifying estimation window width
-width = 500
-
+# Definition of function
 execution_of_VaR_ES_forecasting <- function(){
   
   # Loop through indices
@@ -101,7 +75,7 @@ execution_of_VaR_ES_forecasting <- function(){
                                                                              var.spec = var.spec,
                                                                              mean.spec = armamean,
                                                                              dist.spec = dist.spec,
-                                                                             tolerance_lvl = 0.05,
+                                                                             tolerance_lvl = tolerance_lvl,
                                                                              index_name = index_name,
                                                                              spec_i = spec_i,
                                                                              dist = dist.spec),
@@ -184,13 +158,15 @@ execution_of_VaR_ES_forecasting <- function(){
       left_join(forecasted.VaR.data.frame, by = 'Date') %>%
       left_join(forecasted.ES.data.frame, by = 'Date')
     
-    # Assign exceedence flag: 0 -> no exceedence, 1 -> exceedence
-    for(i in 4:ncol(data)){
-      colname_test <- colnames(data[i])
-      colname_result <- paste0('Exceeded_', colname_test)
-      
-      data[[colname_result]] <- ifelse(data$Return < data[[colname_test]], 1, 0)
+    # Assign exceedence flag for VaR: 0 -> no exceedence, 1 -> exceedence
+    for(colname_test in names(data)){
+      is_col_VaR <- substr(colname_test, 1, 3)
+      if(is_col_VaR == 'VaR'){
+        colname_result <- paste0('Exceeded_', colname_test)
+        data[[colname_result]] <- ifelse(data$Return < data[[colname_test]], 1, 0)
+      }
     }
+    
     
     # Saving results in csv file with corresponding name
     write.csv(x = data,
