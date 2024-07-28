@@ -47,17 +47,21 @@ execution_of_VaR_ES_forecasting <- function(){
     # Storing return data as zoo object
     returns <- zoo(data_returns, data_dates)
     
+    # Omitting NAs (first entry in returns is NA)
+    returns <- na.omit(returns)
+    
     # Creating empty list for forecasted VaR and ES values
     forecasted.VaR.list <- list()
     forecasted.ES.list <- list()
     
-    # Creating counter for variance specification in current loop over garch specifications
-    spec_i <- 0
-    
     # Loop over variance specifications
-    for (var.spec in var.spec.list) {
+    for (var.spec in names(var.spec.list)) {
       
-      spec_i <- spec_i + 1
+      # Extracting number of specification
+      spec_i <- substr(var.spec, 5, nchar(var.spec))
+      
+      # Specification list entry
+      var.spec <- var.spec.list[[var.spec]]
       
       # Loop over distribution
       for (dist.spec in dist.spec.list) {
@@ -77,11 +81,11 @@ execution_of_VaR_ES_forecasting <- function(){
                                                                              dist.spec = dist.spec,
                                                                              tolerance_lvl = tolerance_lvl,
                                                                              index_name = index_name,
-                                                                             spec_i = spec_i,
-                                                                             dist = dist.spec),
-                                    align = 'right')
-        # !!!!!!!!Test VaR and ES of last observation (delete in final version)!!!!!!!!!
-        test_VaR_ES <- rolling.VaR.ES
+                                                                             spec_i = spec_i),
+                                    align = 'right',
+                                    coredata = FALSE)
+        # !!!TESTING!!! VaR and ES of last observation (delete in final version)!!!!!!!!!
+        #test_VaR_ES <- rolling.VaR.ES
         
         # Returning object after rollapply is difficult to handle, because predict_VaR_ES_1_ahead returns list in each iteration
         # Dates and values for VaR and ES must be extracted and stored in a more handy way
@@ -173,7 +177,7 @@ execution_of_VaR_ES_forecasting <- function(){
               file = paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'),
               row.names = FALSE)
   }
-  return(test_VaR_ES) # !!!!!!!!!!!!! Exclude in final version !!!!!!!!!!!!
+  #return(test_VaR_ES) # !!!TESTING!!! remove in final version
 }
 
 

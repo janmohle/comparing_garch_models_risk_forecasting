@@ -6,7 +6,7 @@
 # solve problem that of a lot of NaN in jsu and nig (sigma cannot be forecasted) -> Exclude?
 
 
-# Initial clearing
+# Initial cleaning
 rm(list = ls())
 if (dev.cur() != 1) {
   dev.off()
@@ -74,7 +74,7 @@ tolerance_lvl = 0.05
 data_include = 1:600
 
 # Indices
-index_include = 2:4
+index_include = 1:4
 
 # Variance specifications
 varspec_include = 1:3
@@ -89,7 +89,7 @@ source('scripts/stepwise_VaR_ES_forecasting.R')
   # Only uncomment, if step wise VaR and ES forecast should be calculated all over again (takes multiple hours to run)
   # Results can also be loaded from csv file
 
-#execution_of_VaR_ES_forecasting()
+execution_of_VaR_ES_forecasting()
 
 
 DAX.prices.plot
@@ -123,6 +123,7 @@ GOLD.statistics <- ts_main_statistics(GOLD$Return)
 # -> no clear leverage effect
 
 
+
 # Loading forecasted VaR and ES
 for(index in indices){
   index_name <- index
@@ -137,6 +138,9 @@ for(index in indices){
 }
 
 
+################################################################################
+####           Testing of forecasts                                         ####
+################################################################################
 
 # Deploying Kupiec test
 for(index in indices){
@@ -164,6 +168,7 @@ for(index in indices){
   assign(result_name, result)
 }
 
+# Write results of Christofferson 2 test of DAX forecasts to console
 for(i in 1:length(DAX.Christofferson.2.test.results)){
   name <- names(DAX.Christofferson.2.test.results[i])
   value <- DAX.Christofferson.2.test.results[[i]][['p_value']]
@@ -171,6 +176,10 @@ for(i in 1:length(DAX.Christofferson.2.test.results)){
   message <- paste0(name, ': ', value, '\n\n')
   cat(message)
 }
+
+
+
+
 
 
 
@@ -215,37 +224,6 @@ ggplot(na.omit(GOLD), aes(x = as.Date(Date),
 
 
 
-
-# Specify tolerace level (think about one global specification for data calculation and test for integirty)
-
-
-
-
-
-
-
-
-
-  
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-colnames(test.VaR.data)[which(p < 0.05)]
-
-colnames(test.VaR.data)[which.max(p)]
-
 # Plotting VaR and ES
 ggplot(na.omit(DAX), aes(x = as.Date(Date),
                          y = Return)) +
@@ -276,5 +254,10 @@ ggplot(na.omit(DAX), aes(x = as.Date(Date),
             col = 'red') +
   geom_line(aes(y = VaR_spec1ghyp),
             col = 'green')
+
+
+
+
+
 
 

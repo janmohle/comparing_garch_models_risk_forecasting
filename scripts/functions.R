@@ -170,24 +170,45 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
 ############################################################################################
 ### Returns one-step-ahead VaR and ES forecast  (convert input data to zoo object first) ###
 ############################################################################################
-
 predict_VaR_ES_1_ahead <- function(data,
                                    var.spec,
                                    mean.spec,
                                    dist.spec,
                                    tolerance_lvl,
                                    index_name,
-                                   spec_i = 'NA',
-                                   dist = 'NA'){
-  # Omit NAs form data
-  data <- na.omit(data)
+                                   spec_i){
   
-  # Specifying garch model
+  # Test if data is zoo object and stop function if not
+  if(!is.zoo(data)){
+    data_class <- class(data)
+    error_message <- paste0('Input is ',data_class, ' but needs to be zoo object!')
+    stop(error_message)
+  }
+  
+  # Function that returns NA for VaR and ES if both can't be calculated and writes message to console
+  return_na_VaR_ES <- function(data){
+    index.NA <- tail(index(data), 1)
+    VaR <- zoo(NA, index.NA)
+    ES <- zoo(NA, index.NA)
+    VaR_and_ES <- list(VaR = VaR,
+                       ES = ES)
+    
+    # Print date which can't be calculated and will later be interpolated
+    date <- index(VaR_and_ES$VaR)
+    message <- paste0('Preceeding date of date where VaR and ES get interpolated: ', date, '\n\n')
+    cat(message)
+    
+    # Return VaR and ES
+    return(VaR_and_ES)
+  }
+  
+  # Specifying GARCH model
   spec <- ugarchspec(variance.model = var.spec,
                      mean.model = mean.spec,
                      distribution.model = dist.spec)
   
-  # Fitting garch model (hybrid automatically trys different solvers: solnp, nlminb, gosolnp, nloptr):
+  # Fitting GARCH model (hybrid automatically tries different solver in order: solnp, nlminb, gosolnp, nloptr):
+  # Return NA if fitting doesn't work
   fit <- tryCatch(
     {
       ugarchfit(spec = spec,
@@ -195,80 +216,129 @@ predict_VaR_ES_1_ahead <- function(data,
                 solver = 'hybrid')
     },
     error = function(e){
-      cat('\nSolvers did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,'):', e$message, '\n\n')
+      cat('\nSolvers did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for VaR and ES\n\n')
       
       return(NA)
     }
   )
     
-  # Forecasting one-step-ahead VaR and ES (insert NA if no solver converges)
+  # If fit is NA than NAs get returned for VaR and ES forecast
   if(is.na(fit)) {
+    return(return_na_VaR_ES(data = data))
+  }
+  
+  # Extracting coefficients from fit
+  coef_fit <- coef(fit)
+    
+  # Extracting skewness and shape parameter (if not prevalent, NA gets assigned)
+  skew <- ifelse('skew' %in% names(coef_fit), coef_fit['skew'], NA)
+  shape <- ifelse('shape' %in% names(coef_fit), coef_fit['shape'], NA)
+
+  # One-step-ahead forecast
+  # Return NA if forecasting doesn't work
+  forecast <- tryCatch(
+    {
+      ugarchforecast(fitORspec = fit,
+                     n.ahead = 1)
+    },
+    error = function(e){
+      cat('\nForecasting did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for VaR and ES\n\n')
+      
+      return(NA)
+    }
+  )
+   
+  # If forecast is NA than NAs get returned for VaR and ES forecast   
+  if(is.na(forecast)){
+    return(return_na_VaR_ES(data = data))
+  }
+  
+  # Extraction of predicted mean and standard deviation
+  mu <- fitted(forecast)
+  sigma <- sigma(forecast)
+  
+  # Writing message if mu can't be calculated and return NA for VaR and ES
+  if(is.nan(mu)){
+    cat('\nMu cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,')\nNA gets returned for VaR and ES\n\n')
+    return(return_na_VaR_ES(data = data))
+  }
+      
+  # Writing message if sigma can't be calculated and return NA for VaR and ES
+  if(is.nan(sigma)){
+    cat('\nSigma cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,')\nNA gets returned for VaR and ES\n\n')
+    return(return_na_VaR_ES(data = data))
+  }
+      
+  # Function returns pth quantile of current distribution
+  pth_quantile <- function(p) {
+    q <- qdist(distribution = dist.spec,
+               p = p,
+               skew = skew,
+               shape = shape)
+    return(q)
+  }
+  
+  # Calculation of quantile of tolerance level
+  # Return NA if calculation doesn't work
+  q_tolerance_lvl <- tryCatch(
+    {
+      pth_quantile(p = tolerance_lvl)
+    }, error = function(e){
+      cat('\nQuantile of tolerance level cannot be calculated (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for VaR and ES\n\n')
+      
+      return(NA)
+    }
+  )
+
+  # If quantile of tolerance level is NA than NAs get returned for VaR and ES forecast  
+  if(is.na(q_tolerance_lvl)){
+    return(return_na_VaR_ES(data = data))
+  }
+  
+  # Calculation of one-step-ahead VaR forecast
+  VaR <- mu + sigma * q_tolerance_lvl
+  
+  # Integrate over inverse cdf: from 0 until tolerance level
+  # Return NULL if integration doesn't work
+  integrated_value <- tryCatch(
+    {
+      integrated <- integrate(pth_quantile,
+                              lower = 0,
+                              upper = tolerance_lvl)
+      
+      # Extract value of integration
+      integrated$value
+      
+    }, error = function(e) {
+      cat('\nIntegration did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for ES\n\n')
+      
+      return(NULL)
+    }
+  )
+  
+  # If integrated value is NULL than NA gets returned for ES forecast in combination with forecasted VaR
+  if(is.null(integrated_value)){
     index.NA <- tail(index(data), 1)
-    VaR <- zoo(NA, index.NA)
     ES <- zoo(NA, index.NA)
     VaR_and_ES <- list(VaR = VaR,
                        ES = ES)
-  } else {
-    # Coefficients
-    coef_fit <- coef(fit)
     
-    # Skewness and shape parameter
-    skew <- coef_fit['skew']
-    shape <- coef_fit['shape']
+    # Print date which can't be calculated and will later be interpolated
+    date <- index(VaR_and_ES$ES)
+    message <- paste0('Preceeding date of date where ES gets interpolated: ', date, '\n\n')
+    cat(message)
     
-    # One-step-ahead forecast of model
-    forecast <- ugarchforecast(fitORspec = fit,
-                               n.ahead = 1)
-    
-    # Extraction of predicted mean and standard deviation
-    mu <- fitted(forecast)
-    sigma <- sigma(forecast)
-    
-    # Writing message if sigma cannot be calculated
-    if(is.nan(sigma)){
-      cat('\nSigma cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,')\n\n')
-      sigma <- NA
-    }
-  
-    # Function returns pth quantile of current distribution
-    pth_quantile <- function(p) {
-      q <- qdist(distribution = dist.spec,
-                 p = p,
-                 skew = skew,
-                 shape = shape)
-      return(q)
-    }
-      
-    # Calculation of one-step-ahead VaR forecast
-    VaR <- mu + sigma * pth_quantile(p = tolerance_lvl)
-  
-    # Integrate over inverse cdf: from 0 until tolerance level (handling errors gracefully)
-    integrated <- tryCatch(
-      {
-        integrate(pth_quantile,
-                  lower = 0,
-                  upper = tolerance_lvl)
-      }, error = function(e) {
-         cat('\nIntegration did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist,'):', e$message, '\n\n')
-        
-         return(NULL)
-      }
-    )
-    
-    # Test if integration worked, if not, assign NA
-    if(is.null(integrated)){
-      integrated_value <- NA
-    } else {
-      integrated_value <- integrated$value      
-    }
-    
-    # Calculation of ES
-    ES <- mu + sigma / tolerance_lvl * integrated_value
-    
-    # Combine VaR and ES in list
-    VaR_and_ES <- list(VaR = VaR,
-                       ES = ES)
+    # Return VaR and ES
+    return(VaR_and_ES)
   }
+      
+  # Calculation of ES
+  ES <- mu + sigma / tolerance_lvl * integrated_value
+  
+  # Combine VaR and ES in one list
+  VaR_and_ES <- list(VaR = VaR,
+                     ES = ES)
+  
   #Return list with VaR and ES forecasts
   return(VaR_and_ES)
 }
