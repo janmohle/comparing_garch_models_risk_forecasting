@@ -224,6 +224,13 @@ predict_VaR_ES_1_ahead <- function(data,
     
   # If fit is NA than NAs get returned for VaR and ES forecast
   if(is.na(fit)) {
+    
+    # Vector with NA information (global scope)
+    new_entry_NA_fit <- tail(index(data), 1)
+    names(new_entry_NA_fit) <- paste0(index_name, '_spec', spec_i, dist.spec)
+    NA_fit <<- c(NA_fit, new_entry_NA_fit)
+    
+    # Returning NAs for VaR and ES
     return(return_na_VaR_ES(data = data))
   }
   
@@ -250,6 +257,13 @@ predict_VaR_ES_1_ahead <- function(data,
    
   # If forecast is NA than NAs get returned for VaR and ES forecast   
   if(is.na(forecast)){
+    
+    # Vector with NA information (global scope)
+    new_entry_NA_forecast <- tail(index(data), 1)
+    names(new_entry_NA_forecast) <- paste0(index_name, '_spec', spec_i, dist.spec)
+    NA_forecast <<- c(NA_forecast, new_entry_NA_forecast)
+    
+    # Returning NAs for VaR and ES
     return(return_na_VaR_ES(data = data))
   }
   
@@ -259,13 +273,29 @@ predict_VaR_ES_1_ahead <- function(data,
   
   # Writing message if mu can't be calculated and return NA for VaR and ES
   if(is.nan(mu)){
+    # Console message
     cat('\nMu cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,')\nNA gets returned for VaR and ES\n\n')
+    
+    # Vector with NA information (global scope)
+    new_entry_NA_mu <- tail(index(data), 1)
+    names(new_entry_NA_mu) <- paste0(index_name, '_spec', spec_i, dist.spec)
+    NA_mu <<- c(NA_mu, new_entry_NA_mu)
+    
+    # Returning NAs for VaR and ES
     return(return_na_VaR_ES(data = data))
   }
       
   # Writing message if sigma can't be calculated and return NA for VaR and ES
   if(is.nan(sigma)){
+    # Console message
     cat('\nSigma cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,')\nNA gets returned for VaR and ES\n\n')
+    
+    # Vector with NA information (global scope)
+    new_entry_NA_sigma <- tail(index(data), 1)
+    names(new_entry_NA_sigma) <- paste0(index_name, '_spec', spec_i, dist.spec)
+    NA_sigma <<- c(NA_sigma, new_entry_NA_sigma)
+    
+    # Returning NAs for VaR and ES
     return(return_na_VaR_ES(data = data))
   }
       
@@ -292,6 +322,13 @@ predict_VaR_ES_1_ahead <- function(data,
 
   # If quantile of tolerance level is NA than NAs get returned for VaR and ES forecast  
   if(is.na(q_tolerance_lvl)){
+    
+    # Vector with NA information (global scope)
+    new_entry_NA_q_tolerance_lvl <- tail(index(data), 1)
+    names(new_entry_NA_q_tolerance_lvl) <- paste0(index_name, '_spec', spec_i, dist.spec)
+    NA_q_tolerance_lvl <<- c(NA_q_tolerance_lvl, new_entry_NA_q_tolerance_lvl)
+    
+    # Returning NAs for VaR and ES
     return(return_na_VaR_ES(data = data))
   }
   
@@ -318,6 +355,13 @@ predict_VaR_ES_1_ahead <- function(data,
   
   # If integrated value is NULL than NA gets returned for ES forecast in combination with forecasted VaR
   if(is.null(integrated_value)){
+    
+    # Vector with NA information (global scope)
+    new_entry_NA_integrated_value <- tail(index(data), 1)
+    names(new_entry_NA_integrated_value) <- paste0(index_name, '_spec', spec_i, dist.spec)
+    NA_integrated_value <<- c(NA_integrated_value, new_entry_NA_integrated_value)
+    
+    # Creating list with VaR and ES
     index.NA <- tail(index(data), 1)
     ES <- zoo(NA, index.NA)
     VaR_and_ES <- list(VaR = VaR,
@@ -375,7 +419,7 @@ Kupiec_test <- function(data,
       # Storing test results in list
       result <- list(p_value = p_value,
                      LR = LR)
-      entry_name <- paste0('Kupiec_p_', substr(column, 10, nchar(column)))
+      entry_name <- paste0('Kupiec_', substr(column, 10, nchar(column)))
       results[[entry_name]] <- result
     }
   }
@@ -442,7 +486,7 @@ Christofferson1_test <- function(data){
       # Storing test result in list
       result <- list(p_value = p_value,
                      LR = LR)
-      entry_name <- paste0('Chr1_p_', substr(column, 10, nchar(column)))
+      entry_name <- paste0('Chr1_', substr(column, 10, nchar(column)))
       results[[entry_name]] <- result
     }
   }
@@ -463,20 +507,6 @@ Christofferson2_test <- function(data,
     # Test if column is column where test can be deployed
     if(is_name_Exceeded == 'Exceeded'){
       column_data <- na.omit(data[[column]])
-      
-      ##### Coverage test from Kupiec ######
-      
-      # Calculating number of non-exceedences, exceedences and proportion of exceedences
-      n1 <- sum(column_data)
-      n0 <- length(column_data) - n1
-      prop_exceeded <- n1 / (n1 + n0)
-      
-      # Likelihood Ratio Test
-      L_ur <- prop_exceeded ^ n1 * (1 - prop_exceeded) ^ n0
-      L_r <- tolerance_lvl ^ n1 * (1 - tolerance_lvl) ^ n0
-      LR_Kupiec <- -2 * log(L_r / L_ur)
-      
-      #### Independence test (Christofferson 1) ####
       
       # n_ij starts with 0 in for each column
       n00 <- 0
@@ -504,17 +534,13 @@ Christofferson2_test <- function(data,
       }
       
       # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
-      prop_exceeded <- (n01 + n11) / (n00 + n11 + n01 + n10)
       prop_exceeded0 <- n01 / (n00 + n01)
       prop_exceeded1 <- n11 / (n10 + n11)
       
       # Likelihood Ratio Test
-      L_r <- prop_exceeded ^ (n01 + n11) * (1 - prop_exceeded) ^ (n00 + n10)
+      L_r <- tolerance_lvl ^ (n01 + n11) * (1 - tolerance_lvl) ^ (n00 + n10)
       L_ur <- prop_exceeded0 ^ n01 * (1 - prop_exceeded0) ^ n00 * prop_exceeded1 ^ n11 * (1 - prop_exceeded1) ^ n10
-      LR_Chr1 <- -2 * log(L_r / L_ur)
-      
-      # Sum up likelihood ratio of both test to receive the one of Christofferson 2 test (Conditional Coverage)
-      LR <- LR_Kupiec + LR_Chr1
+      LR <- -2 * log(L_r / L_ur)
       
       # Calcutating p value (LR ~ X^2(2))
       p_value <- pchisq(q = LR,
@@ -524,7 +550,7 @@ Christofferson2_test <- function(data,
       # Storing test result in list
       result <- list(p_value = p_value,
                      LR = LR)
-      entry_name <- paste0('Chr2_p_', substr(column, 10, nchar(column)))
+      entry_name <- paste0('Chr2_', substr(column, 10, nchar(column)))
       results[[entry_name]] <- result
     }
   }

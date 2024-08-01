@@ -1,10 +1,23 @@
+#################################################################################
+####           TO-DO-LIST                                                    ####
+#################################################################################
 
-
-# TO-DO-LIST:
 # solve problem that integrate in stepwise_VaR_ES_forecating lead to an error in one observation
 # solve problem that ghst distribution sometimes takes too long -> Exclude it?
 # solve problem that of a lot of NaN in jsu and nig (sigma cannot be forecasted) -> Exclude?
+# SOLVE problem of WIG spec 3 ghyp jsu: part of error marked: leading and tailing NAs are lost: DURING INTERPOLATION set na.rm = FALSE
+# Implement way to handle remaining NAs and give out more information where values got interpolated!!! -> vector with date as value and column name as entry name? different vectors for fitting error, integration error, etc.
+# Include LR in test output
+# Create vector to store iteration time of each iteration
+# Join vectors with NA information with final table for lead and recieve correct date where NAs are interpolated
+# Set controlling value for running predicions and put function execution into forecast scipt
+# Controll fitting parameters for faster fitting, e.g. initial parameters and number of iterations
 
+
+
+#################################################################################
+####           General set-up                                                ####
+#################################################################################
 
 # Initial cleaning
 rm(list = ls())
@@ -13,13 +26,11 @@ if (dev.cur() != 1) {
 }
 cat('\14')
 
-
 # Loading required libraries
 library(tidyverse)
 library(zoo)
 library(rugarch)
 library(FinTS)
-
 
 # Data preparation
 source('scripts/preparing_data.R')
@@ -30,6 +41,11 @@ source('scripts/functions.R')
 # Initial descriptive plots
 source('scripts/plots.R')
 
+
+
+#################################################################################
+####           Model specification set-up                                    ####
+#################################################################################
 
 # Vector of all index names
 indices <- c('DAX',
@@ -68,7 +84,11 @@ width = 500
 # Specifying tolerance level
 tolerance_lvl = 0.05
 
-# Subsetting of specifications for faster calculations in development period (to run faster)
+
+
+#################################################################################
+## Sub setting of specifications for faster calculations in development period ##
+#################################################################################
 
 # Input data
 data_include = 1:600
@@ -82,16 +102,19 @@ varspec_include = 1:3
 # Distribution assumptions
 dist_include = c(-8, -9)
 
+# Execution of VaR and ES forecast
+  # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
+  # FALSE: old results are being loaded from csv files in output
+execution_of_VaR_ES_forecasting = FALSE
 source('scripts/stepwise_VaR_ES_forecasting.R')
 
 
-# Execution of VaR and ES forecast:
-  # Only uncomment, if step wise VaR and ES forecast should be calculated all over again (takes multiple hours to run)
-  # Results can also be loaded from csv file
 
-execution_of_VaR_ES_forecasting()
+#################################################################################
+####           Descriptive part                                              ####
+#################################################################################
 
-
+# Price and Return curves 
 DAX.prices.plot
 DAX.returns.plot
 WIG.prices.plot
@@ -101,7 +124,7 @@ BTC.returns.plot
 GOLD.prices.plot
 GOLD.returns.plot
 
-#main statistics
+# Main descriptive statistics 
 DAX.statistics <- ts_main_statistics(DAX$Return)
 # -> significant autocorrelation
 # -> significant ARCH effect
@@ -124,140 +147,65 @@ GOLD.statistics <- ts_main_statistics(GOLD$Return)
 
 
 
-# Loading forecasted VaR and ES
+#################################################################################
+####           Testing of forecasts                                          ####
+#################################################################################
+
+# Kupiec test
 for(index in indices){
-  index_name <- index
-  data <- read.csv(paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'))
-  
-  # Converting Date column to date value
-  data <- data %>%
-    mutate(Date = as.Date(Date))
-  
-  assign(index_name, data)
-  rm(index_name, data)
+result_name <- paste0(index, '.Kupiec.test.results')
+index_data <- get(index)
+result <- Kupiec_test(data = index_data,
+                      tolerance_lvl = tolerance_lvl)
+assign(result_name, result)
 }
 
-
-################################################################################
-####           Testing of forecasts                                         ####
-################################################################################
-
-# Deploying Kupiec test
+# Christofferson 1 test
 for(index in indices){
-  result_name <- paste0(index, '.Kupiec.test.results')
-  index_data <- get(index)
-  result <- Kupiec_test(data = index_data,
-                        tolerance_lvl = tolerance_lvl)
-  assign(result_name, result)
+result_name <- paste0(index, '.Christofferson.1.test.results')
+index_data <- get(index)
+result <- Christofferson1_test(data = index_data)
+assign(result_name, result)
 }
 
-# Deploying Christofferson 1 test
+# Christofferson 2 test
 for(index in indices){
-  result_name <- paste0(index, '.Christofferson.1.test.results')
-  index_data <- get(index)
-  result <- Christofferson1_test(data = index_data)
-  assign(result_name, result)
-}
-
-# Deploying Christofferson 2 test
-for(index in indices){
-  result_name <- paste0(index, '.Christofferson.2.test.results')
-  index_data <- get(index)
-  result <- Christofferson2_test(data = index_data,
-                                 tolerance_lvl = tolerance_lvl)
-  assign(result_name, result)
+result_name <- paste0(index, '.Christofferson.2.test.results')
+index_data <- get(index)
+result <- Christofferson2_test(data = index_data,
+                               tolerance_lvl = tolerance_lvl)
+assign(result_name, result)
 }
 
 # Write results of Christofferson 2 test of DAX forecasts to console
-for(i in 1:length(DAX.Christofferson.2.test.results)){
-  name <- names(DAX.Christofferson.2.test.results[i])
-  value <- DAX.Christofferson.2.test.results[[i]][['p_value']]
-  value <- round(value, 3)
-  message <- paste0(name, ': ', value, '\n\n')
-  cat(message)
-}
+for(i in 1:length(GOLD.Christofferson.2.test.results)){
+name <- names(GOLD.Christofferson.2.test.results[i])
+value <- GOLD.Christofferson.2.test.results[[i]][['p_value']]
+value <- round(value, 3)
+message <- paste0(name, ': ', value, '\n\n')
+cat(message)
+} 
 
 
 
-
-
-
-
+#################################################################################
+####           Visual inspection of forecasts                                ####
+#################################################################################
 
 # Plotting VaR and ES
-
 for(index in indices){
-  data <- get(index)
-  plot <- ggplot(na.omit(data), aes(x = as.Date(Date),
-                                    y = Return)) +
-          geom_point() +
-          geom_line(aes(y = VaR_spec3sged),
-                    col = 'red') +
-          geom_line(aes(y = VaR_spec3jsu),
-                    col = 'green') +
-          geom_line(aes(y = VaR_spec3ghyp),
-                    col = 'purple') +
-          ggtitle(index)
-          print(plot)
+data <- get(index)
+plot <- ggplot(na.omit(data), aes(x = as.Date(Date),
+                                  y = Return)) +
+        geom_point() +
+        geom_line(aes(y = VaR_spec1snorm),
+                  col = 'red') +
+        geom_line(aes(y = VaR_spec1sged),
+                  col = 'green') +
+        geom_line(aes(y = VaR_spec2sstd),
+                  col = 'purple') +
+        ggtitle(index) +
+        theme(plot.title = element_text(hjust = 0.5)) +
+        xlab('Date')
+        print(plot)
 }
-
-
-
-
-
-
-
-# Plotting GOLD
-ggplot(na.omit(GOLD), aes(x = as.Date(Date),
-                         y = Return)) +
-  geom_point() +
-  geom_line(aes(y = VaR_spec3ghyp),
-            col = 'yellow') +
-  geom_line(aes(y = ES_spec3ghyp),
-            col = 'green') +
-  geom_line(aes(y = VaR_spec3jsu),
-            col = 'red') +
-  geom_line(aes(y = ES_spec3jsu),
-            col = 'purple')
-# A lot of interpolation is obviouse in plot -> could lead to misleading results!!
-
-
-
-
-# Plotting VaR and ES
-ggplot(na.omit(DAX), aes(x = as.Date(Date),
-                         y = Return)) +
-  geom_point(aes(colour = as.factor(Exceeded_ES_spec1snorm))) +
-  geom_line(aes(y = VaR_spec2snorm),
-            col = 'red') +
-  geom_line(aes(y = VaR_spec2sged),
-            col = 'green') +
-  geom_line(aes(y = VaR_spec2ghyp),
-            col = 'purple') +
-  geom_line(aes(y = VaR_spec2jsu),
-            col = 'orange')+
-  geom_line(aes(y = ES_spec1snorm),
-            col = 'black') +
-  theme_minimal()
-
-
-
-
-
-
-
-# Plotting VaR and ES
-ggplot(na.omit(DAX), aes(x = as.Date(Date),
-                         y = Return)) +
-  geom_point(aes(colour = as.factor(Exceeded_VaR_spec1sged))) +
-  geom_line(aes(y = VaR_spec1sged),
-            col = 'red') +
-  geom_line(aes(y = VaR_spec1ghyp),
-            col = 'green')
-
-
-
-
-
-
-

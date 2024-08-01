@@ -3,10 +3,10 @@
 #################################################################################################################
 
 # Explanation:
-#  Function calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder with price and return data of index
-#  Takes multiple hours to run with full data set!!!!
+#  Function calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder joined with price and return data
+#  Takes multiple hours to run without sub-setting!!!!
 
-# Subsetting for faster testing
+# Sub-setting for faster testing
 
 # Subsets data for faster step wise forecasting if data_include is specified
 if(exists('data_include')){
@@ -33,7 +33,8 @@ if(exists('dist_include')){
 
 
 # Definition of function
-execution_of_VaR_ES_forecasting <- function(){
+execution_of_VaR_ES_forecasting_function <- function(){
+  
   
   # Loop through indices
   for(index in indices){
@@ -130,33 +131,35 @@ execution_of_VaR_ES_forecasting <- function(){
       }
     }
     
-    # Linear interpolation of NAs
-    for(i in 1:length(forecasted.VaR.list)){
-      forecasted.VaR.list[[i]] <- na.approx(forecasted.VaR.list[[i]])
+    # Linear interpolation of NAs 
+    for(col_name in names(forecasted.VaR.list)){
+      forecasted.VaR.list[[col_name]] <- na.approx(forecasted.VaR.list[[col_name]],
+                                                   na.rm = FALSE)
     }
     
-    for(i in 1:length(forecasted.ES.list)){
-      forecasted.ES.list[[i]] <- na.approx(forecasted.ES.list[[i]])
+    for(col_name in names(forecasted.ES.list)){
+      forecasted.ES.list[[col_name]] <- na.approx(forecasted.ES.list[[col_name]],
+                                                  na.rm = FALSE)
     }
     
     # Leading forecasted.VaR.list and forecasted.ES.list
-    for(i in 1:length(forecasted.VaR.list)){
-      forecasted.VaR.list[[i]] <- stats::lag(x = forecasted.VaR.list[[i]],
-                                             k = -1)
+    for(col_name in names(forecasted.VaR.list)){
+      forecasted.VaR.list[[col_name]] <- stats::lag(x = forecasted.VaR.list[[col_name]],
+                                                    k = -1)
     }
     
-    for(i in 1:length(forecasted.ES.list)){
-      forecasted.ES.list[[i]] <- stats::lag(x = forecasted.ES.list[[i]],
-                                            k = -1)
+    for(col_name in names(forecasted.ES.list)){
+      forecasted.ES.list[[col_name]] <- stats::lag(x = forecasted.ES.list[[col_name]],
+                                                   k = -1)
     }
-    
+
     # Creating data frame for VaR and ES
     forecasted.VaR.data.frame <- as.data.frame(forecasted.VaR.list)
     forecasted.VaR.data.frame[['Date']] <- as.Date(rownames(forecasted.VaR.data.frame))
-    
+
     forecasted.ES.data.frame <- as.data.frame(forecasted.ES.list)
     forecasted.ES.data.frame[['Date']] <- as.Date(rownames(forecasted.ES.data.frame))
-    
+
     # Joining VaR and ES data frame to return data frame
     data <- data %>%
       left_join(forecasted.VaR.data.frame, by = 'Date') %>%
@@ -178,6 +181,77 @@ execution_of_VaR_ES_forecasting <- function(){
               row.names = FALSE)
   }
   #return(test_VaR_ES) # !!!TESTING!!! remove in final version
+}
+
+
+################################################################################################
+### Execution of VaR ES forecasting if execution_of_VaR_ES_forecasting == TRUE, else loading ###
+################################################################################################
+
+if(execution_of_VaR_ES_forecasting){
+  # Empty vectors for NA information (NA in VaR and ES)
+  NA_fit <<- vector()
+  NA_forecast <<- vector()
+  NA_mu <<- vector()
+  NA_sigma <<- vector()
+  NA_q_tolerance_lvl <<- vector()
+  
+  # Empty vectors for NA information (NA in  # Empty vectors for NA information (NA in VaR and ES)ES)
+  NA_integrated_value <<- vector()
+  
+  # Execution of VaR ES forecasting
+  execution_of_VaR_ES_forecasting_function()
+  
+  # Loading forecasted VaR and ES
+  for(index in indices){
+    index_name <- index
+    data <- read.csv(paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'))
+    
+    # Converting Date column to date value
+    data <- data %>%
+      mutate(Date = as.Date(Date))
+    
+    assign(index_name, data)
+    rm(index_name, data)
+  }
+  
+  # Removing unnessecary onbjects
+  rm(index, index_name, data)
+  
+  # Storing NA information in list and deleting individual vectors
+  NA_information <- list(fit = NA_fit,
+                         forecast = NA_forecast,
+                         mu = NA_mu,
+                         sigma = NA_sigma,
+                         q_tolerance_lvl = NA_q_tolerance_lvl,
+                         integrated_value = NA_integrated_value)
+  rm(NA_fit, NA_forecast, NA_mu, NA_sigma, NA_q_tolerance_lvl, NA_integrated_value)
+  
+  # Assign proper date to integer value
+  for(NA_info in names(NA_information)){
+    NA_information[[NA_info]] <- as.Date('1970-01-01') + NA_information[[NA_info]]
+  }
+  
+  # Saving NA information list
+  saveRDS(NA_information, file='output/NA_information.RData')
+  
+} else{
+  
+  # Loading forecasted VaR and ES
+  for(index in indices){
+    index_name <- index
+    data <- read.csv(paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'))
+    
+    # Converting Date column to date value
+    data <- data %>%
+      mutate(Date = as.Date(Date))
+    
+    assign(index_name, data)
+    rm(index_name, data)
+  }
+  
+  # Loading NA information list
+  NA_information <- readRDS('output/NA_information.RData')
 }
 
 
