@@ -51,9 +51,14 @@ execution_of_VaR_ES_forecasting_function <- function(){
     # Omitting NAs (first entry in returns is NA)
     returns <- na.omit(returns)
     
-    # Creating empty list for forecasted VaR and ES values
+    # Creating empty list for forecasted VaR, ES, mu, sigma, skew, shape and dist
     forecasted.VaR.list <- list()
     forecasted.ES.list <- list()
+    forecasted.mu.list <- list()
+    forecasted.sigma.list <- list()
+    forecasted.skew.list <- list()
+    forecasted.shape.list <- list()
+    forecasted.dist.list <- list()
     
     # Loop over variance specifications
     for (var.spec in names(var.spec.list)) {
@@ -78,7 +83,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
                                     width = width,
                                     FUN = function(x) predict_VaR_ES_1_ahead(data = x,
                                                                              var.spec = var.spec,
-                                                                             mean.spec = armamean,
+                                                                             mean.spec = constantmean,
                                                                              dist.spec = dist.spec,
                                                                              tolerance_lvl = tolerance_lvl,
                                                                              index_name = index_name,
@@ -96,31 +101,25 @@ execution_of_VaR_ES_forecasting_function <- function(){
         
         # Creating data frame for easier extraction of values
         rolling.VaR.ES.df <- as.data.frame(rolling.VaR.ES)
-        
-        # Extracting VaR and ES  values with loop
-        rolling.VaR.values <- vector()
-        for(obs in rolling.VaR.ES.df[['VaR']]){
-          VaR.of.obs <- as.vector(obs)
-          rolling.VaR.values <- append(rolling.VaR.values, VaR.of.obs)
+
+        # Extracting VaR, ES, mu, sigma, skew, shape, dist values with loop and converting it to zoo object
+        for(col in names(rolling.VaR.ES.df)){
+          values <- vector()
+          for(obs in rolling.VaR.ES.df[[col]]){
+            value_of_obs <- as.vector(obs)
+            values <- append(values, value_of_obs)
+          }
+          values_zoo <- zoo(values, dates)
+          
+          # Creating list with results
+          forecasted_col_list_name <- paste0('forecasted.', col, '.list')
+          forecasted_col_list <- get(forecasted_col_list_name)
+          
+          entryname <- paste0(col, '_spec', spec_i,'_', dist.spec)
+          forecasted_col_list[[entryname]] <- values_zoo
+          
+          assign(forecasted_col_list_name, forecasted_col_list)
         }
-        
-        rolling.ES.values <- vector()
-        for(obs in rolling.VaR.ES.df[['ES']]){
-          ES.of.obs <- as.vector(obs)
-          rolling.ES.values <- append(rolling.ES.values, ES.of.obs)
-        }
-        
-        # Creating clean zoo object for VaR and ES
-        rolling.VaR.zoo <- zoo(rolling.VaR.values, dates)
-        
-        rolling.ES.zoo <- zoo(rolling.ES.values, dates)
-        
-        # Creating list with results
-        entryname <- paste0('VaR_spec', spec_i, dist.spec)
-        forecasted.VaR.list[[entryname]] <- rolling.VaR.zoo
-        
-        entryname <- paste0('ES_spec', spec_i, dist.spec)
-        forecasted.ES.list[[entryname]] <- rolling.ES.zoo
         
         # End time of loop
         end <- Sys.time()
@@ -131,39 +130,55 @@ execution_of_VaR_ES_forecasting_function <- function(){
       }
     }
     
+    
+    
+    
+    #!!!EXCLUDE?!!!
     # Linear interpolation of NAs 
-    for(col_name in names(forecasted.VaR.list)){
-      forecasted.VaR.list[[col_name]] <- na.approx(forecasted.VaR.list[[col_name]],
-                                                   na.rm = FALSE)
+    #for(col_name in names(forecasted.VaR.list)){
+     # forecasted.VaR.list[[col_name]] <- na.approx(forecasted.VaR.list[[col_name]],
+    #                                               na.rm = FALSE)
+    #}
+    
+    #for(col_name in names(forecasted.ES.list)){
+     # forecasted.ES.list[[col_name]] <- na.approx(forecasted.ES.list[[col_name]],
+      #                                            na.rm = FALSE)
+    #}
+    #!!!!!!!!!
+    
+    # Leading lists with forecasted measurements
+    for(measure in names(rolling.VaR.ES.df)){
+      forecasted_measure_list_name <- paste0('forecasted.', measure, '.list')
+      forecasted_measure_list <- get(forecasted_measure_list_name)
+      
+      for(col_name in names(forecasted_measure_list)){
+        forecasted_measure_list[[col_name]] <- stats::lag(x = forecasted_measure_list[[col_name]],
+                                                          k = -1)
+      }
+      assign(forecasted_measure_list_name, forecasted_measure_list)
     }
     
-    for(col_name in names(forecasted.ES.list)){
-      forecasted.ES.list[[col_name]] <- na.approx(forecasted.ES.list[[col_name]],
-                                                  na.rm = FALSE)
+    # Creating data frame for VaR, ES, mu, sigma, skew, shape and dist
+    for(measure in names(rolling.VaR.ES.df)){
+      forecasted_measure_list_name <- paste0('forecasted.', measure, '.list')
+      forecasted_measure_list <- get(forecasted_measure_list_name)
+      
+      forecasted_measure_data_frame <- as.data.frame(forecasted_measure_list)
+      forecasted_measure_data_frame[['Date']] <- as.Date(rownames(forecasted_measure_data_frame))
+      
+      forecasted_measure_data_frame_name <- paste0('forecasted.', measure, '.data.frame')
+      assign(forecasted_measure_data_frame_name, forecasted_measure_data_frame)
     }
     
-    # Leading forecasted.VaR.list and forecasted.ES.list
-    for(col_name in names(forecasted.VaR.list)){
-      forecasted.VaR.list[[col_name]] <- stats::lag(x = forecasted.VaR.list[[col_name]],
-                                                    k = -1)
-    }
-    
-    for(col_name in names(forecasted.ES.list)){
-      forecasted.ES.list[[col_name]] <- stats::lag(x = forecasted.ES.list[[col_name]],
-                                                   k = -1)
-    }
-
-    # Creating data frame for VaR and ES
-    forecasted.VaR.data.frame <- as.data.frame(forecasted.VaR.list)
-    forecasted.VaR.data.frame[['Date']] <- as.Date(rownames(forecasted.VaR.data.frame))
-
-    forecasted.ES.data.frame <- as.data.frame(forecasted.ES.list)
-    forecasted.ES.data.frame[['Date']] <- as.Date(rownames(forecasted.ES.data.frame))
-
-    # Joining VaR and ES data frame to return data frame
+    # Joining VaR, ES, mu, sigma, skew, shape and dist data frame to return data frame
     data <- data %>%
       left_join(forecasted.VaR.data.frame, by = 'Date') %>%
-      left_join(forecasted.ES.data.frame, by = 'Date')
+      left_join(forecasted.ES.data.frame, by = 'Date') %>%
+      left_join(forecasted.mu.data.frame, by = 'Date') %>%
+      left_join(forecasted.sigma.data.frame, by = 'Date') %>%
+      left_join(forecasted.skew.data.frame, by = 'Date') %>%
+      left_join(forecasted.shape.data.frame, by = 'Date') %>%
+      left_join(forecasted.dist.data.frame, by = 'Date')
     
     # Assign exceedence flag for VaR: 0 -> no exceedence, 1 -> exceedence
     for(colname_test in names(data)){
@@ -174,6 +189,69 @@ execution_of_VaR_ES_forecasting_function <- function(){
       }
     }
     
+    # Computing cumulative exceedences for ES backtesting (values can sometimes vary slightly due to estimation errors of parameters of distribution due to numerical optimization and with that approximation!)
+    dist.spec.names.vec <- unlist(dist.spec.list)
+    names(dist.spec.names.vec) <- NULL
+    var.spec.names.vec <- names(var.spec.list)
+    
+    # Loop over rows of data
+    for(i in 1:nrow(data)){
+      
+      # Loop over variance specifications
+      for(var in var.spec.names.vec){
+        
+        # Loop over distribution assumptions
+        for(dist in dist.spec.names.vec){
+          
+          # Current combination of var and dist
+          var_dist <- paste0(var, '_', dist)
+          
+          # Assign name of currently needed column
+          dist_var_dist <- paste0('dist_', var_dist)
+          mu_var_dist <- paste0('mu_', var_dist)
+          sigma_var_dist <- paste0('sigma_', var_dist)
+          skew_var_dist <- paste0('skew_', var_dist)
+          shape_var_dist <- paste0('shape_', var_dist)
+          
+          # Test that data is not NA, if so, assign NAs to u and CumVio
+          Exceeded_VaR_var_dist <- paste0('Exceeded_VaR_', var_dist)
+          
+          if(is.na(data[[Exceeded_VaR_var_dist]][i])){
+            
+            u <- NA
+            CumVio <- NA
+            
+          } else {
+            
+            # Compute value of inverse cdf at quantile of return
+            u <- pdist(distribution = data[[dist_var_dist]][i],
+                       q = data[['Return']][i],
+                       mu = data[[mu_var_dist]][i],
+                       sigma = data[[sigma_var_dist]][i],
+                       skew = data[[skew_var_dist]][i],
+                       shape = data[[shape_var_dist]][i])
+            
+            # Calculate cumulative violations
+            if(u <= tolerance_lvl){
+              
+              CumVio <- 1 / tolerance_lvl * (tolerance_lvl - u)
+              
+            } else {
+              
+              CumVio <- 0
+              
+            }
+          }
+          
+          # Assign u and CumVio to current column with correct name
+          col_name_u <- paste0('u_', var_dist)
+          data[[col_name_u]][i] <- u
+          
+          col_name_CumVio <- paste0('CumVio_', var_dist)
+          data[[col_name_CumVio]][i] <- CumVio
+        }
+      }
+    }
     
     # Saving results in csv file with corresponding name
     write.csv(x = data,
@@ -214,10 +292,7 @@ if(execution_of_VaR_ES_forecasting){
     assign(index_name, data)
     rm(index_name, data)
   }
-  
-  # Removing unnessecary onbjects
-  rm(index, index_name, data)
-  
+
   # Storing NA information in list and deleting individual vectors
   NA_information <- list(fit = NA_fit,
                          forecast = NA_forecast,

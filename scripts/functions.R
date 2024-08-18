@@ -185,13 +185,26 @@ predict_VaR_ES_1_ahead <- function(data,
     stop(error_message)
   }
   
+  # Store index of last obs
+  index_last_obs <- tail(index(data), 1)
+  
   # Function that returns NA for VaR and ES if both can't be calculated and writes message to console
   return_na_VaR_ES <- function(data){
-    index.NA <- tail(index(data), 1)
-    VaR <- zoo(NA, index.NA)
-    ES <- zoo(NA, index.NA)
+    VaR <- zoo(NA, index_last_obs)
+    ES <- zoo(NA, index_last_obs)
+    mu <- zoo(NA, index_last_obs)
+    sigma <- zoo(NA, index_last_obs)
+    skew <- zoo(NA, index_last_obs)
+    shape <- zoo(NA, index_last_obs)
+    dist.spec <- zoo(NA, index_last_obs)
+    
     VaR_and_ES <- list(VaR = VaR,
-                       ES = ES)
+                       ES = ES,
+                       mu = mu,
+                       sigma = sigma,
+                       skew = skew,
+                       shape = shape,
+                       dist = dist.spec)
     
     # Print date which can't be calculated and will later be interpolated
     date <- index(VaR_and_ES$VaR)
@@ -362,10 +375,17 @@ predict_VaR_ES_1_ahead <- function(data,
     NA_integrated_value <<- c(NA_integrated_value, new_entry_NA_integrated_value)
     
     # Creating list with VaR and ES
-    index.NA <- tail(index(data), 1)
-    ES <- zoo(NA, index.NA)
+    ES <- zoo(NA, index_last_obs)
+    skew <- zoo(skew, index_last_obs)
+    shape <- zoo(shape, index_last_obs)
+    dist.spec <- zoo(dist.spec, index_last_obs)
     VaR_and_ES <- list(VaR = VaR,
-                       ES = ES)
+                       ES = ES,
+                       mu = mu,
+                       sigma = sigma,
+                       skew = skew,
+                       shape = shape,
+                       dist = dist.spec)
     
     # Print date which can't be calculated and will later be interpolated
     date <- index(VaR_and_ES$ES)
@@ -379,9 +399,19 @@ predict_VaR_ES_1_ahead <- function(data,
   # Calculation of ES
   ES <- mu + sigma / tolerance_lvl * integrated_value
   
+  # Change skew and shape to zoo object
+  skew <- zoo(skew, index_last_obs)
+  shape <- zoo(shape, index_last_obs)
+  dist.spec <- zoo(dist.spec, index_last_obs)
+  
   # Combine VaR and ES in one list
   VaR_and_ES <- list(VaR = VaR,
-                     ES = ES)
+                     ES = ES,
+                     mu = mu,
+                     sigma = sigma,
+                     skew = skew,
+                     shape = shape,
+                     dist = dist.spec)
   
   #Return list with VaR and ES forecasts
   return(VaR_and_ES)
@@ -391,38 +421,51 @@ predict_VaR_ES_1_ahead <- function(data,
 ############################################################################################
 ###  Kupiec test: Unonditional Coverage VaR (if column name starts with Exceeded)        ###
 ############################################################################################
-Kupiec_test <- function(data,
-                        tolerance_lvl){
-  # Initialize empty result list
-  results <- list()
+VaR_Kupiec_backtest <- function(data,
+                                tolerance_lvl){
   
-  for(column in names(data)){
-    is_name_Exceeded <- substr(column, 1, 8)
+  # Preparing result vectors
+  LR_all <- vector()
+  p_all <- vector()
+  
+  for(col in names(data)){
     
-    # Test if column is column where test can be deployed
+    # Test if column consists of exceedences
+    is_name_Exceeded <- substr(col, 1, 8)
     if(is_name_Exceeded == 'Exceeded'){
-      column_data <- na.omit(data[[column]])
+      
+      # Using only non-missing entries
+      col_data <- na.omit(data[[col]])
       
       # Calculating number of non-exceedences, exceedences and proportion of exceedences
-      n1 <- sum(column_data)
-      n0 <- length(column_data) - n1
+      n1 <- sum(col_data)
+      n0 <- length(col_data) - n1
       prop_exceeded <- n1 / (n1 + n0)
       
       # Likelihood Ratio Test
+      # Likelihood of unrestricted (L_ur) and restricted (L_r) model
       L_ur <- prop_exceeded ^ n1 * (1 - prop_exceeded) ^ n0
       L_r <- tolerance_lvl ^ n1 * (1 - tolerance_lvl) ^ n0
-      LR <- -2 * log(L_r / L_ur)
-      p_value <- pchisq(q = LR,
-                        df = 1,
-                        lower.tail = FALSE)
       
-      # Storing test results in list
-      result <- list(p_value = p_value,
-                     LR = LR)
-      entry_name <- paste0('Kupiec_', substr(column, 10, nchar(column)))
-      results[[entry_name]] <- result
+      # Test statistic
+      LR <- -2 * log(L_r / L_ur)
+      
+      # p value (LR ~ X^2(1))
+      p <- pchisq(q = LR,
+                  df = 1,
+                  lower.tail = FALSE)
+
+      # Appending result vectors and add name
+      entryname <- substr(col, 14, nchar(col))
+      
+      LR_all[entryname] <- LR
+      p_all[entryname] <- p
     }
   }
+  
+  #Return results
+  results <- list(LR = LR_all,
+                  p = p_all)
   return(results)
 }
 
@@ -430,16 +473,16 @@ Kupiec_test <- function(data,
 ############################################################################################
 ###  Christofferson 1 test: Independence of (if column name starts with Exceeded)        ###
 ############################################################################################
-Christofferson1_test <- function(data){
+VaR_Christofferson1_backtest <- function(data){
   
-  # Initialize empty result list
-  results <- list()
-  for(column in names(data)){
+  # Preparing result vectors
+  LR_all <- vector()
+  p_all <- vector()
+  
+  for(col in names(data)){
     
-    is_name_Exceeded <- substr(column, 1, 8)
-    
-    # Test if column is column where test can be deployed
-    
+    # Test if column consists of exceedences
+    is_name_Exceeded <- substr(col, 1, 8)
     if(is_name_Exceeded == 'Exceeded'){
       
       # n_ij starts with 0 in for each column
@@ -448,21 +491,21 @@ Christofferson1_test <- function(data){
       n01 <- 0
       n10 <- 0
       
-      # Omit NAs
-      column_data <- na.omit(data[[column]])
+      # Using only non-missing entries
+      col_data <- na.omit(data[[col]])
       
       # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
-      for(i in 2:length(column_data)){
-        if(column_data[i] == 0 & column_data[i - 1] == 0){
+      for(i in 2:length(col_data)){
+        if(col_data[i] == 0 & col_data[i - 1] == 0){
           n00 <- n00 + 1
         }
-        else if(column_data[i] == 1 & column_data[i - 1] == 1){
+        else if(col_data[i] == 1 & col_data[i - 1] == 1){
           n11 <- n11 + 1
         }
-        else if(column_data[i] == 0 & column_data[i - 1] == 1){
+        else if(col_data[i] == 0 & col_data[i - 1] == 1){
           n01 <- n01 + 1
         }
-        else if(column_data[i] == 1 & column_data[i - 1] == 0){
+        else if(col_data[i] == 1 & col_data[i - 1] == 0){
           n10 <- n10 + 1
         }
         else {
@@ -476,37 +519,46 @@ Christofferson1_test <- function(data){
       prop_exceeded1 <- n11 / (n10 + n11)
       
       # Likelihood Ratio Test
+      # Likelihood of restricted (L_r) and unrestricted (L_ur) model
       L_r <- prop_exceeded ^ (n01 + n11) * (1 - prop_exceeded) ^ (n00 + n10)
       L_ur <- prop_exceeded0 ^ n01 * (1 - prop_exceeded0) ^ n00 * prop_exceeded1 ^ n11 * (1 - prop_exceeded1) ^ n10
-      LR <- -2 * log(L_r / L_ur)
-      p_value <- pchisq(q = LR,
-                        df = 1,
-                        lower.tail = FALSE)
       
-      # Storing test result in list
-      result <- list(p_value = p_value,
-                     LR = LR)
-      entry_name <- paste0('Chr1_', substr(column, 10, nchar(column)))
-      results[[entry_name]] <- result
+      # Test statistic
+      LR <- -2 * log(L_r / L_ur)
+      
+      # p value (LR ~ X^2(1))
+      p <- pchisq(q = LR,
+                  df = 1,
+                  lower.tail = FALSE)
+      
+      # Appending result vectors and add name
+      entryname <- substr(col, 14, nchar(col))
+      
+      LR_all[entryname] <- LR
+      p_all[entryname] <- p
     }
   }
+
+  #Return results
+  results <- list(LR = LR_all,
+                  p = p_all)
   return(results)
 }
 
 ############################################################################################
 ### Christofferson 2 test: Conditional Coverage VaR (if column name starts with Exceeded) ##
 ############################################################################################
-Christofferson2_test <- function(data,
-                                 tolerance_lvl){
-  # Initialize empty result list
-  results <- list()
+VaR_Christofferson2_backtest <- function(data,
+                                         tolerance_lvl){
+  # Preparing result vectors
+  LR_all <- vector()
+  p_all <- vector()
   
-  for(column in names(data)){
-    is_name_Exceeded <- substr(column, 1, 8)
+  for(col in names(data)){
     
-    # Test if column is column where test can be deployed
+    # Test if column consists of exceedences
+    is_name_Exceeded <- substr(col, 1, 8)
     if(is_name_Exceeded == 'Exceeded'){
-      column_data <- na.omit(data[[column]])
       
       # n_ij starts with 0 in for each column
       n00 <- 0
@@ -514,18 +566,21 @@ Christofferson2_test <- function(data,
       n01 <- 0
       n10 <- 0
       
+      # Using only non-missing entries
+      col_data <- na.omit(data[[col]])
+      
       # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
-      for(i in 2:length(column_data)){
-        if(column_data[i] == 0 & column_data[i - 1] == 0){
+      for(i in 2:length(col_data)){
+        if(col_data[i] == 0 & col_data[i - 1] == 0){
           n00 <- n00 + 1
         }
-        else if(column_data[i] == 1 & column_data[i - 1] == 1){
+        else if(col_data[i] == 1 & col_data[i - 1] == 1){
           n11 <- n11 + 1
         }
-        else if(column_data[i] == 0 & column_data[i - 1] == 1){
+        else if(col_data[i] == 0 & col_data[i - 1] == 1){
           n01 <- n01 + 1
         }
-        else if(column_data[i] == 1 & column_data[i - 1] == 0){
+        else if(col_data[i] == 1 & col_data[i - 1] == 0){
           n10 <- n10 + 1
         }
         else {
@@ -538,21 +593,134 @@ Christofferson2_test <- function(data,
       prop_exceeded1 <- n11 / (n10 + n11)
       
       # Likelihood Ratio Test
+      # Likelihood of restricted (L_r) and unrestricted (L_ur) model
       L_r <- tolerance_lvl ^ (n01 + n11) * (1 - tolerance_lvl) ^ (n00 + n10)
       L_ur <- prop_exceeded0 ^ n01 * (1 - prop_exceeded0) ^ n00 * prop_exceeded1 ^ n11 * (1 - prop_exceeded1) ^ n10
+      
+      # Test statistic
       LR <- -2 * log(L_r / L_ur)
       
-      # Calcutating p value (LR ~ X^2(2))
-      p_value <- pchisq(q = LR,
-                        df = 2,
-                        lower.tail = FALSE)
+      # p value (LR ~ X^2(2))
+      p <- pchisq(q = LR,
+                  df = 2,
+                  lower.tail = FALSE)
       
-      # Storing test result in list
-      result <- list(p_value = p_value,
-                     LR = LR)
-      entry_name <- paste0('Chr2_', substr(column, 10, nchar(column)))
-      results[[entry_name]] <- result
+      # Appending result vectors and add name
+      entryname <- substr(col, 14, nchar(col))
+      
+      LR_all[entryname] <- LR
+      p_all[entryname] <- p
     }
   }
+
+  #Return results
+  results <- list(LR = LR_all,
+                  p = p_all)
+  return(results)
+}
+
+
+############################################################################################
+### Unconditional coverage test ES without adjustment for parameter estimation risk      ###
+############################################################################################
+ES_uc_backtest <- function(data,
+                           tolerance_lvl){
+  
+  # Preparing result vectors
+  U_all <- vector()
+  p_all <- vector()
+  
+  for(col in names(data)){
+    
+    # Test if column consists of cumulative violations
+    is_CumVio <- substr(col, 1, 6)
+    if(is_CumVio == 'CumVio'){
+      
+      # Using only non-missing entries
+      H_hut <- na.omit(data[[col]])
+      
+      # Mean of H_huts
+      H_mean <- mean(H_hut)
+      
+      # Number of non-missing entries
+      n <- length(H_hut)
+      
+      # Calculating test statistic
+      U <- sqrt(n) * (H_mean - tolerance_lvl / 2) / sqrt(tolerance_lvl * (1 / 3 - tolerance_lvl / 4))
+      
+      # Calculating p value
+      p <- 2 * pnorm(q = abs(U),
+                     lower.tail = FALSE)
+        
+      # Appending result vectors and add name
+      entryname <- substr(col, 8, nchar(col))
+      
+      U_all[entryname] <- U
+      p_all[entryname] <- p
+    }
+  }
+  
+  # Return results
+  result <- list(U = U_all,
+                 p = p_all)
+  return(result)
+}
+
+############################################################################################
+### ES independence Backtest without correction for parameter estimation risk.           ###
+############################################################################################
+ES_indep_backtest <- function(data,
+                              tolerance_lvl,
+                              lags){
+  # Preparing result vectors
+  C_all <- vector()
+  p_all <- vector()
+  
+  for(col in names(data)){
+    
+    # Test if column consists of cumulative violations
+    is_CumVio <- substr(col, 1, 6)
+    if(is_CumVio == 'CumVio'){
+      
+      # Using only non-missing entries
+      H_hut <- na.omit(data[[col]])
+      
+      # Number of entries
+      n <- length(H_hut)
+      
+      # Variance of H_huts
+      gamma_n0 <- 1 / n * sum((H_hut - tolerance_lvl / 2) * (H_hut - tolerance_lvl / 2))
+      
+      # Vector with covariance between H_hut and j-laged H_hut
+      gamma_nj <- vector(length = lags)
+      
+      for(j in 1:lags){
+        gamma_nj[j] <- 1 / (n - j) * sum((H_hut[(j+1):n] - tolerance_lvl / 2) * (H_hut[1:(n-j)] - tolerance_lvl / 2))
+      }
+      
+      # Vector with correlations between H_hut and j-laged H_hut
+      rho_nj <- gamma_nj / gamma_n0
+      
+      # Test statistic for Box-Pierce-Test
+      C <- n * sum(rho_nj ^ 2)
+      
+      # p-value of test statistic
+      df <- length(rho_nj)
+      
+      p <- pchisq(q = C,
+                  df = df,
+                  lower.tail = FALSE)
+      
+      # Appending result vectors and add name
+      entryname <- substr(col, 8, nchar(col))
+      
+      C_all[entryname] <- C
+      p_all[entryname] <- p
+    }
+  }
+  
+  #Return results
+  results <- list(C = C_all,
+                  p = p_all)
   return(results)
 }

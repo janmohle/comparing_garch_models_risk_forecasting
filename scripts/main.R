@@ -61,7 +61,15 @@ var.spec.list <- list(spec1 = list(model = 'sGARCH',
                       spec3 = list(model = 'gjrGARCH',
                                    garchOrder = c(1, 1)))
 
-# ARMA(1,1) as mean model for all estimations (to capture as much dependencies of consecutive observations as possible while still keeping model parsimonious)
+# Constant mean for data without significant autocorrelation (random walk with potential drift)
+constantmean <- list(armaOrder = c(0,0),
+                     include.mean = TRUE)
+
+# WILL PROBABLY NOT BE USED 
+# ARMA(1,1) as mean model for data with significant autocorrelation (based on Ljung-Box-Test)
+# !! for text: arma model first tried -> lead in some cases to unreasonable unstable mean estimates -> constant mean is theoretical explainable and also act and pacf show that there doesnt seem to be strucutal autocorrelation which adds value to estimation
+# coefficient usually equal each other out (e.g. positive ar and negative ma)
+# show plot of mean as proof??
 armamean <- list(armaOrder = c(1,1),
                  include.mean = TRUE)
 
@@ -85,29 +93,27 @@ width = 500
 tolerance_lvl = 0.05
 
 
-
 #################################################################################
 ## Sub setting of specifications for faster calculations in development period ##
 #################################################################################
 
 # Input data
-data_include = 1:600
+#data_include = 1:700
 
 # Indices
-index_include = 1:4
+#index_include = 3
 
 # Variance specifications
-varspec_include = 1:3
+#varspec_include = c(1,2)
 
 # Distribution assumptions
-dist_include = c(-8, -9)
+#dist_include = c(4, 5, 6)
 
 # Execution of VaR and ES forecast
   # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
   # FALSE: old results are being loaded from csv files in output
 execution_of_VaR_ES_forecasting = FALSE
 source('scripts/stepwise_VaR_ES_forecasting.R')
-
 
 
 #################################################################################
@@ -129,83 +135,115 @@ DAX.statistics <- ts_main_statistics(DAX$Return)
 # -> significant autocorrelation
 # -> significant ARCH effect
 # -> leverage effect
+# -> mean model could potentially be usefull
 
 WIG.statistics <- ts_main_statistics(WIG$Return)
 # -> no significant autocorrelation
 # -> significant ARCH effect
 # -> leverage effect
+# NO MEAN MODEL NEEDED
 
 BTC.statistics <- ts_main_statistics(BTC$Return)
 # -> no significant autocorrelation
 # -> significant ARCH effect
 # -> no clear leverage effect
+# NO MEAN MODEL NEEDED
 
 GOLD.statistics <- ts_main_statistics(GOLD$Return)
 # -> no significant autocorrelation (but p < 0.1)
 # -> significant ARCH effect
 # -> no clear leverage effect
-
+# NO MEAN MODEL NEEDED
 
 
 #################################################################################
 ####           Testing of forecasts                                          ####
 #################################################################################
 
-# Kupiec test
+# VaR Kupiec backtest
 for(index in indices){
-result_name <- paste0(index, '.Kupiec.test.results')
+result_name <- paste0(index, '.VaR.Kupiec.backtest.results')
 index_data <- get(index)
-result <- Kupiec_test(data = index_data,
-                      tolerance_lvl = tolerance_lvl)
+result <- VaR_Kupiec_backtest(data = index_data,
+                              tolerance_lvl = tolerance_lvl)
 assign(result_name, result)
 }
 
-# Christofferson 1 test
+# VaR Christofferson 1 backtest
 for(index in indices){
-result_name <- paste0(index, '.Christofferson.1.test.results')
+result_name <- paste0(index, '.VaR.Christofferson.1.backtest.results')
 index_data <- get(index)
-result <- Christofferson1_test(data = index_data)
+result <- VaR_Christofferson1_backtest(data = index_data)
 assign(result_name, result)
 }
 
-# Christofferson 2 test
+# VaR Christofferson 2 backtest
 for(index in indices){
-result_name <- paste0(index, '.Christofferson.2.test.results')
+result_name <- paste0(index, '.VaR.Christofferson.2.backtest.results')
 index_data <- get(index)
-result <- Christofferson2_test(data = index_data,
-                               tolerance_lvl = tolerance_lvl)
+result <- VaR_Christofferson2_backtest(data = index_data,
+                                       tolerance_lvl = tolerance_lvl)
 assign(result_name, result)
 }
 
-# Write results of Christofferson 2 test of DAX forecasts to console
-for(i in 1:length(GOLD.Christofferson.2.test.results)){
-name <- names(GOLD.Christofferson.2.test.results[i])
-value <- GOLD.Christofferson.2.test.results[[i]][['p_value']]
-value <- round(value, 3)
-message <- paste0(name, ': ', value, '\n\n')
-cat(message)
-} 
+# ES unconditional coverage backtest
+for(index in indices){
+  result_name <- paste0(index, '.ES.UC.backtest.results')
+  index_data <- get(index)
+  result <- ES_uc_backtest(data = index_data,
+                           tolerance_lvl = tolerance_lvl)
+  assign(result_name, result)
+}
 
-
+# ES independence backtest
+for(index in indices){
+  result_name <- paste0(index, '.ES.indep.backtest.results')
+  index_data <- get(index)
+  result <- ES_indep_backtest(data = index_data,
+                              tolerance_lvl = tolerance_lvl,
+                              lags = 5)
+  assign(result_name, result)
+}
 
 #################################################################################
 ####           Visual inspection of forecasts                                ####
 #################################################################################
+plot = FALSE
 
-# Plotting VaR and ES
-for(index in indices){
-data <- get(index)
-plot <- ggplot(na.omit(data), aes(x = as.Date(Date),
-                                  y = Return)) +
-        geom_point() +
-        geom_line(aes(y = VaR_spec1snorm),
-                  col = 'red') +
-        geom_line(aes(y = VaR_spec1sged),
-                  col = 'green') +
-        geom_line(aes(y = VaR_spec2sstd),
-                  col = 'purple') +
-        ggtitle(index) +
-        theme(plot.title = element_text(hjust = 0.5)) +
-        xlab('Date')
-        print(plot)
+if(plot){
+  # Plotting VaR and ES
+  for(index in indices){
+    data <- get(index)
+    plot <- ggplot(data[-1:- (width + 2),], aes(x = as.Date(Date),
+                                                y = Return)) +
+      geom_point() +
+      geom_line(aes(y = VaR_spec1_snorm),
+                col = 'red') +
+      geom_line(aes(y = VaR_spec1_sged),
+                col = 'green') +
+      geom_line(aes(y = VaR_spec2_sstd),
+                col = 'purple') +
+      ggtitle(index) +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      xlab('Date')
+    print(plot)
+  }
 }
+
+plot = TRUE
+if(plot){
+# Nice plot of VaR and ES for WIG spec2 sged
+ggplot(data =  WIG[-1:-502,],
+       mapping = aes(x = Date,
+                     y = Return)) +
+  geom_point(aes(colour = as.factor(Exceeded_VaR_spec2_sged))) +
+  geom_line(aes(y = VaR_spec2_sged),
+            col = 'orange') +
+  geom_line(aes(y = ES_spec2_sged),
+            col = 'purple') +
+  scale_color_manual(values = c("1" = "red", "0" = "black"),
+                     name = "Exceeded VaR",
+                     labels = c("No", "Yes"))
+}
+
+   
