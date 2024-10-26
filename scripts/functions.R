@@ -208,7 +208,7 @@ predict_VaR_ES_1_ahead <- function(data,
     
     # Print date which can't be calculated and will later be interpolated
     date <- index(VaR_and_ES$VaR)
-    message <- paste0('Preceeding date of date where VaR and ES get interpolated: ', date, '\n\n')
+    message <- paste0('Preceeding date of date where VaR and ES get interpolated (NOT ANYMORE -> exclude message): ', date, '\n\n')
     cat(message)
     
     # Return VaR and ES
@@ -226,8 +226,26 @@ predict_VaR_ES_1_ahead <- function(data,
     {
       ugarchfit(spec = spec,
                 data = data,
-                solver = 'hybrid')
-    },
+                solver = 'hybrid',
+                solver.control = list(n.restarts = 5,  # Number of restarts for the global solver (gosolnp)
+                                      
+                                      # Global solver settings (gosolnp)
+                                      global.solver.control = list(maxit = 50000,         # Maximum number of iterations
+                                                                   xtol_rel = 1e-6,       # Tolerance for parameter changes
+                                                                   ftol_rel = 1e-8,       # Tolerance for function value changes (likelihood function)
+                                                                   trace = 0              # Verbose output to monitor progress (0 means no output)
+                                                                   ),
+                                      
+                                      # Local solver settings (nloptr)
+                                      local.solver = "nloptr",
+                                      local.solver.control = list(maxeval = 50000,       # Maximum number of iterations
+                                                                  xtol_rel = 1e-6,       # Tolerance for parameter changes
+                                                                  ftol_rel = 1e-8,       # Tolerance for function value changes (likelihood function)
+                                                                  trace = 0              # Verbose output to monitor progress (0 means no output)
+                                                                  )
+                                      )
+                )
+      },
     error = function(e){
       cat('\nSolvers did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for VaR and ES\n\n')
       
@@ -235,8 +253,35 @@ predict_VaR_ES_1_ahead <- function(data,
     }
   )
     
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  # Information regarding convergence (Exclude later again or store information in different way)
+  fit_convergence <- fit@fit$convergence
+  #print(fit_convergence)
+  rm(fit_convergence)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   # If fit is NA than NAs get returned for VaR and ES forecast
-  if(is.na(fit)) {
+  if(suppressWarnings(is.na(fit))){
     
     # Vector with NA information (global scope)
     new_entry_NA_fit <- tail(index(data), 1)
@@ -267,10 +312,10 @@ predict_VaR_ES_1_ahead <- function(data,
       return(NA)
     }
   )
-   
+  
   # If forecast is NA than NAs get returned for VaR and ES forecast   
-  if(is.na(forecast)){
-    
+  if(suppressWarnings(is.na(forecast))){
+  
     # Vector with NA information (global scope)
     new_entry_NA_forecast <- tail(index(data), 1)
     names(new_entry_NA_forecast) <- paste0(index_name, '_spec', spec_i, dist.spec)
@@ -389,7 +434,7 @@ predict_VaR_ES_1_ahead <- function(data,
     
     # Print date which can't be calculated and will later be interpolated
     date <- index(VaR_and_ES$ES)
-    message <- paste0('Preceeding date of date where ES gets interpolated: ', date, '\n\n')
+    message <- paste0('Preceeding date of date where ES gets interpolated (NOT ANYMORE -> exclude info): ', date, '\n\n')
     cat(message)
     
     # Return VaR and ES

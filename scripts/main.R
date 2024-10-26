@@ -11,7 +11,16 @@
 # Create vector to store iteration time of each iteration
 # Join vectors with NA information with final table for lead and recieve correct date where NAs are interpolated
 # Set controlling value for running predicions and put function execution into forecast scipt
-# Controll fitting parameters for faster fitting, e.g. initial parameters and number of iterations
+# Control fitting parameters for faster fitting, e.g. initial parameters and number of iterations
+
+
+
+# Handle warning messages
+# Put price plots and return plots into one object and handle warnings
+# Handle convergence information
+# old2 are good data sets
+
+# COMMIT MESSAGE: Adjust solver control parameters in ugarchfit: Changes made to functions.R
 
 
 
@@ -98,23 +107,22 @@ tolerance_lvl = 0.05
 #################################################################################
 
 # Input data
-#data_include = 1:700
+data_include = 1:515
 
 # Indices
-#index_include = 3
+index_include = 4
 
 # Variance specifications
-#varspec_include = c(1,2)
+varspec_include = c(1,3)
 
 # Distribution assumptions
-#dist_include = c(4, 5, 6)
+dist_include = c(8)
 
 # Execution of VaR and ES forecast
   # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
   # FALSE: old results are being loaded from csv files in output
-execution_of_VaR_ES_forecasting = FALSE
+execution_of_VaR_ES_forecasting = TRUE
 source('scripts/stepwise_VaR_ES_forecasting.R')
-
 
 #################################################################################
 ####           Descriptive part                                              ####
@@ -208,18 +216,18 @@ for(index in indices){
 #################################################################################
 ####           Visual inspection of forecasts                                ####
 #################################################################################
-plot = FALSE
+plotting_1 = FALSE
 
-if(plot){
+if(plotting_1){
   # Plotting VaR and ES
   for(index in indices){
     data <- get(index)
     plot <- ggplot(data[-1:- (width + 2),], aes(x = as.Date(Date),
                                                 y = Return)) +
       geom_point() +
-      geom_line(aes(y = VaR_spec1_snorm),
+      geom_line(aes(y = VaR_spec2_norm),
                 col = 'red') +
-      geom_line(aes(y = VaR_spec1_sged),
+      geom_line(aes(y = VaR_spec2_ged),
                 col = 'green') +
       geom_line(aes(y = VaR_spec2_sstd),
                 col = 'purple') +
@@ -230,16 +238,16 @@ if(plot){
   }
 }
 
-plot = TRUE
-if(plot){
+plotting_2 = FALSE
+if(plotting_2){
 # Nice plot of VaR and ES for WIG spec2 sged
 ggplot(data =  WIG[-1:-502,],
        mapping = aes(x = Date,
                      y = Return)) +
-  geom_point(aes(colour = as.factor(Exceeded_VaR_spec2_sged))) +
-  geom_line(aes(y = VaR_spec2_sged),
+  geom_point(aes(colour = as.factor(Exceeded_VaR_spec2_sstd))) +
+  geom_line(aes(y = VaR_spec2_sstd),
             col = 'orange') +
-  geom_line(aes(y = ES_spec2_sged),
+  geom_line(aes(y = ES_spec2_sstd),
             col = 'purple') +
   scale_color_manual(values = c("1" = "red", "0" = "black"),
                      name = "Exceeded VaR",

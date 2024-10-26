@@ -310,6 +310,9 @@ if(execution_of_VaR_ES_forecasting){
   # Saving NA information list
   saveRDS(NA_information, file='output/NA_information.RData')
   
+  # Delete not needed variables
+  rm(index, NA_info)
+  
 } else{
   
   # Loading forecasted VaR and ES
@@ -327,6 +330,9 @@ if(execution_of_VaR_ES_forecasting){
   
   # Loading NA information list
   NA_information <- readRDS('output/NA_information.RData')
+  
+  # Delete not needed variables
+  rm(index)
 }
 
 
