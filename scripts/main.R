@@ -1,7 +1,14 @@
 #################################################################################
 ####           TO-DO-LIST                                                    ####
 #################################################################################
-# NOTE:
+
+#DEFINITLY:
+# Try other n.ahead
+# check that window length can be adjusted everywhere
+# Investigate error if Execution is TRUE for real data
+# Implement distribution free innovations -> use quantiles for VaR (and ES)
+
+# NOTES:
 # old2 are good data sets
 
 # NOT NEEDED ANYMORE IF NO INTERPOLATION:
@@ -11,17 +18,19 @@
 # MAYBE:
 # Create vector to store iteration time of each iteration
 # Handle convergence information
-
-#DEFINITLY:
-# Try other n.ahead
-# Put backtests into one object (Backtests -> index -> tests)
-# check that window length can be adjusted everywhere
-# Investigate error if Execution is TRUE for real data
-
-# Implement distribution free innovations -> use quantiles for VaR (and ES)
+# Include loss function for comparison if backtest don't come to satisfactory result
+# Make simulation more dynamic in terms of specifications
 
 
+# TEST OF WHOLE MODEL:
+# Test multiple simulations and check if results are logical
 
+#CHALLANGES:
+
+# IDEAS:
+
+# LATER:
+# Recheck all needed packages
 
 #################################################################################
 ####           General set-up                                                ####
@@ -71,9 +80,10 @@ tolerance_lvl = 0.05
 ################################################################################
 
 # Input data (comment out if not needed)
-data_include = 1:520
+data_include = 1:600
 
 # Indices (comment out if not needed)
+# Be careful when simulation = TRUE because indices are also subset then
 #index_include = 2
 
 # Variance specifications (comment out if not needed)
@@ -83,7 +93,7 @@ varspec_include = c(1)
 dist_include = c(1, 2)
 
 # Should real data or simulated data be used? TRUE for simulated data
-simulation = FALSE
+simulation = TRUE
 
 # Number of simulations (specifiy if simulation = TRUE)
 number_simulations = 3
@@ -212,55 +222,7 @@ source('scripts/stepwise_VaR_ES_forecasting.R')
 ####           Backtesting of forecasts                                      ####
 #################################################################################
 
-# VaR Kupiec backtest
-for(index in indices){
-result_name <- paste0(index, '.VaR.Kupiec.backtest.results')
-index_data <- get(index)
-result <- VaR_Kupiec_backtest(data = index_data,
-                              tolerance_lvl = tolerance_lvl)
-assign(result_name, result)
-}
-rm(result_name, index_data, result, index)
-
-# VaR Christofferson 1 backtest
-for(index in indices){
-result_name <- paste0(index, '.VaR.Christofferson.1.backtest.results')
-index_data <- get(index)
-result <- VaR_Christofferson1_backtest(data = index_data)
-assign(result_name, result)
-}
-rm(result_name, index_data, result, index)
-
-# VaR Christofferson 2 backtest
-for(index in indices){
-result_name <- paste0(index, '.VaR.Christofferson.2.backtest.results')
-index_data <- get(index)
-result <- VaR_Christofferson2_backtest(data = index_data,
-                                       tolerance_lvl = tolerance_lvl)
-assign(result_name, result)
-}
-rm(result_name, index_data, result, index)
-
-# ES unconditional coverage backtest
-for(index in indices){
-  result_name <- paste0(index, '.ES.UC.backtest.results')
-  index_data <- get(index)
-  result <- ES_uc_backtest(data = index_data,
-                           tolerance_lvl = tolerance_lvl)
-  assign(result_name, result)
-}
-rm(result_name, index_data, result, index)
-
-# ES independence backtest
-for(index in indices){
-  result_name <- paste0(index, '.ES.indep.backtest.results')
-  index_data <- get(index)
-  result <- ES_indep_backtest(data = index_data,
-                              tolerance_lvl = tolerance_lvl,
-                              lags = 5)
-  assign(result_name, result)
-}
-rm(result_name, index_data, result, index)
+source('scripts/backtests.R')
 
 #################################################################################
 ####           Visual inspection of forecasts                                ####
