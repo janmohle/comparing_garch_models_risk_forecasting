@@ -1,15 +1,53 @@
 #########################################################################
+### Returns list of price and return plots for all defined indices   ####
+#########################################################################
+
+price_return_plots_func <- function(index){
+  
+  # Assign data
+  data <- get(index)
+  
+  # Initiate empty list for plots for each index
+  index.price.return.plots <- list()
+  
+  # Price plot
+  index.price.return.plots[['Price']] <- ggplot(data,
+                                                aes(x = Date,
+                                                    y = Price)) +
+    geom_line(na.rm = TRUE) +
+    labs(title = paste0(index)) +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  # Return plot
+  index.price.return.plots[['Return']] <- ggplot(data,
+                                                 aes(x = Date,
+                                                     y = Return)) +
+    geom_line(na.rm = TRUE) +
+    labs(title = paste0(index)) +
+    theme(plot.title = element_text(hjust = 0.5))
+
+  return(index.price.return.plots)
+}
+
+
+#########################################################################
 ### Returns most important statistics for financial time series data ####
 #########################################################################
 
-ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 12, nu = 5) {
+ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 12, nu = 5) {
   # Required libraries
   library(FinTS)
   library(moments)
   library(tseries)
   library(rugarch)
   
-  #omit na
+  # Assign data
+  data <- get(index)
+  
+  # Retrieve Returns
+  data <- data[['Return']]
+  
+  #Omit nas
   data <- na.omit(data)
   
   # Initialize results list
@@ -42,7 +80,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
   # Perform Jaque Bera test for normality
   results$JB_test <- tseries::jarque.bera.test(data_standerdized)
   
-  # density plot compared with normal and t distribution
+  # Density plot compared with normal and t distribution
   density_data <- data.frame(x = data_standerdized)
   results$density <- ggplot(density_data,
                             aes(x = x)) +
@@ -55,7 +93,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
                   aes(color = "t-Distribution")) +
     scale_color_manual(values = c("darkgreen", "purple")) +
     labs(color = "Distributions",
-         title = 'Density Comparison') +
+         title = paste0('Density Comparison: ', index)) +
     theme(plot.title = element_text(hjust = 0.5))
   
   # QQ Plot (normal)
@@ -73,7 +111,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
     geom_point() +
     geom_function(fun = function(x) x,
                   col = 'red') +
-    labs(title = 'QQ Plot',
+    labs(title = paste0('QQ Plot: ', index),
          x = 'Theoretical Quantile',
          y = 'Empirical Quantile') +
     theme(plot.title = element_text(hjust = 0.5))
@@ -94,7 +132,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
                color = "red") +
     labs(x = "Lag",
          y = "ACF",
-         title = "ACF Plot") +
+         title = paste0("ACF Plot: ", index)) +
     theme(plot.title = element_text(hjust = 0.5))
   
   # PACF for data
@@ -110,7 +148,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
                color = "red") +
     labs(x = "Lag",
          y = "PACF",
-         title = "PACF Plot") +
+         title = paste0("PACF Plot: ", index)) +
     theme(plot.title = element_text(hjust = 0.5))
   
   # ACF for squared data
@@ -126,7 +164,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
                color = "red") +
     labs(x = "Lag",
          y = "ACF",
-         title = "ACF Plot Squared") +
+         title = paste0("ACF Plot Squared: ", index)) +
     theme(plot.title = element_text(hjust = 0.5))
   
   # PACF for squared data
@@ -142,7 +180,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
                color = "red") +
     labs(x = "Lag",
          y = "PACF",
-         title = "PACF Plot Squared") +
+         title = paste0("PACF Plot Squared: ", index)) +
     theme(plot.title = element_text(hjust = 0.5))
   
   # CCF for data and squared data
@@ -160,7 +198,7 @@ ts_main_statistics <- function(data, lags_Ljung_Box_test = 15, lags_ArchTest = 1
                color = "red") +
     labs(x = "Lag",
          y = "CCF",
-         title = "CCF Plot Leverage Effect") +
+         title = paste0("CCF Plot Leverage Effect: ", index)) +
     theme(plot.title = element_text(hjust = 0.5))
   
   return(results)
@@ -263,9 +301,9 @@ predict_VaR_ES_1_ahead <- function(data,
   
   
   # Information regarding convergence (Exclude later again or store information in different way)
-  fit_convergence <- fit@fit$convergence
+  #fit_convergence <- fit@fit$convergence
   #print(fit_convergence)
-  rm(fit_convergence)
+  #rm(fit_convergence)
   
   
   

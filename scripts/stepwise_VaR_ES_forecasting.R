@@ -6,35 +6,17 @@
 #  Function calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder joined with price and return data
 #  Takes multiple hours to run without sub-setting!!!!
 
-# Sub-setting for faster testing
 
-# Subsets data for faster step wise forecasting if data_include is specified
-if(exists('data_include')){
-  DAX <- DAX[data_include,]
-  WIG <- WIG[data_include,]
-  BTC <- BTC[data_include,]
-  GOLD <- GOLD[data_include,]
-}
-
-# Subsets indices for faster step wise forecasting if index_include specified
-if(exists('index_include')){
-  indices <- indices[index_include]
-}
-
-# Subsets variance specifications for faster step wise forecasting if varspec_include specified
-if(exists('varspec_include')){
-  var.spec.list <- var.spec.list[varspec_include]
-}
-
-# Subsets distribution assumptions for faster step wise forecasting if dist_include specified
-if(exists('dist_include')){
-  dist.spec.list <- dist.spec.list[dist_include]
+# Assign output folder name
+if(simulation){
+  output_folder <- 'simulated_output/'
+} else {
+  output_folder <- 'output/'
 }
 
 
 # Definition of function
 execution_of_VaR_ES_forecasting_function <- function(){
-  
   
   # Loop through indices
   for(index in indices){
@@ -83,7 +65,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
                                     width = width,
                                     FUN = function(x) predict_VaR_ES_1_ahead(data = x,
                                                                              var.spec = var.spec,
-                                                                             mean.spec = constantmean,
+                                                                             mean.spec = mean.spec,
                                                                              dist.spec = dist.spec,
                                                                              tolerance_lvl = tolerance_lvl,
                                                                              index_name = index_name,
@@ -255,7 +237,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
     
     # Saving results in csv file with corresponding name
     write.csv(x = data,
-              file = paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'),
+              file = paste0(output_folder, index_name, '_with_forecasted_VaR_ES.csv'),
               row.names = FALSE)
   }
   #return(test_VaR_ES) # !!!TESTING!!! remove in final version
@@ -283,7 +265,7 @@ if(execution_of_VaR_ES_forecasting){
   # Loading forecasted VaR and ES
   for(index in indices){
     index_name <- index
-    data <- read.csv(paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'))
+    data <- read.csv(paste0(output_folder, index_name, '_with_forecasted_VaR_ES.csv'))
     
     # Converting Date column to date value
     data <- data %>%
@@ -308,7 +290,7 @@ if(execution_of_VaR_ES_forecasting){
   }
   
   # Saving NA information list
-  saveRDS(NA_information, file='output/NA_information.RData')
+  saveRDS(NA_information, file=paste0(output_folder, 'NA_information.RData'))
   
   # Delete not needed variables
   rm(index, NA_info)
@@ -318,7 +300,7 @@ if(execution_of_VaR_ES_forecasting){
   # Loading forecasted VaR and ES
   for(index in indices){
     index_name <- index
-    data <- read.csv(paste0('output/', index_name, '_with_forecasted_VaR_ES.csv'))
+    data <- read.csv(paste0(output_folder, index_name, '_with_forecasted_VaR_ES.csv'))
     
     # Converting Date column to date value
     data <- data %>%
@@ -329,13 +311,13 @@ if(execution_of_VaR_ES_forecasting){
   }
   
   # Loading NA information list
-  NA_information <- readRDS('output/NA_information.RData')
+  NA_information <- readRDS(paste0(output_folder, 'NA_information.RData'))
   
   # Delete not needed variables
   rm(index)
 }
 
-
+rm(output_folder)
 
 
 
