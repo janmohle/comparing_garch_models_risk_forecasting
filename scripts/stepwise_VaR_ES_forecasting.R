@@ -43,40 +43,48 @@ execution_of_VaR_ES_forecasting_function <- function(){
     forecasted.dist.list <- list()
     
     # Loop over variance specifications
-    for (var.spec in names(var.spec.list)) {
+    for (var_spec in names(var.spec.list)) {
       
       # Extracting number of specification
-      spec_i <- substr(var.spec, 5, nchar(var.spec))
+      spec_i <- substr(var_spec, 5, nchar(var_spec))
       
       # Specification list entry
-      var.spec <- var.spec.list[[var.spec]]
+      var.spec <- var.spec.list[[var_spec]]
       
       # Loop over distribution
-      for (dist.spec in dist.spec.list) {
+      for (dist_spec in names(dist.spec.list)) {
+        
+        # Extracting distribution
+        dist.spec <- dist.spec.list[[dist_spec]]
         
         # Start time of loop
         start <- Sys.time()
         
         # Console message
-        cat('Current iteration: ',' Index: ',index_name, ' Spec: ', spec_i, ' Dist: ', dist.spec, '\n')
+        if(dist_spec == 'empirical'){
+          cat('Current iteration: ','Index:',index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist_spec, '\n')
+        } else {
+          cat('Current iteration: ','Index:',index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec, '\n')
+        }
         
         # Rolling window VaR and ES forecasting
         rolling.VaR.ES <- rollapply(returns,
-                                    width = width,
+                                    width = window_width,
                                     FUN = function(x) predict_VaR_ES_1_ahead(data = x,
                                                                              var.spec = var.spec,
                                                                              mean.spec = mean.spec,
                                                                              dist.spec = dist.spec,
                                                                              tolerance_lvl = tolerance_lvl,
                                                                              index_name = index_name,
-                                                                             spec_i = spec_i),
+                                                                             spec_i = spec_i,
+                                                                             dist_spec = dist_spec),
                                     align = 'right',
                                     coredata = FALSE)
         # !!!TESTING!!! VaR and ES of last observation (delete in final version)!!!!!!!!!
         #test_VaR_ES <- rolling.VaR.ES
         
         # Returning object after rollapply is difficult to handle, because predict_VaR_ES_1_ahead returns list in each iteration
-        # Dates and values for VaR and ES must be extracted and stored in a more handy way
+        # Dates and values must be extracted and stored in a more handy way
         
         # Extract dates
         dates <- index(rolling.VaR.ES)
@@ -97,7 +105,11 @@ execution_of_VaR_ES_forecasting_function <- function(){
           forecasted_col_list_name <- paste0('forecasted.', col, '.list')
           forecasted_col_list <- get(forecasted_col_list_name)
           
-          entryname <- paste0(col, '_spec', spec_i,'_', dist.spec)
+          if(dist_spec == 'empirical'){
+            entryname <- paste0(col, '_spec', spec_i,'_', dist_spec)
+          } else {
+            entryname <- paste0(col, '_spec', spec_i,'_', dist.spec)
+          }
           forecasted_col_list[[entryname]] <- values_zoo
           
           assign(forecasted_col_list_name, forecasted_col_list)
@@ -108,7 +120,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
         
         # Print time iteration needed to run
         time <- as.numeric(end - start, units = 'mins')
-        cat('Iteration needed ', time, ' minutes to run\n')
+        cat('Iteration took', time, 'minutes to run\n')
       }
     }
     
@@ -167,15 +179,14 @@ execution_of_VaR_ES_forecasting_function <- function(){
       is_col_VaR <- substr(colname_test, 1, 3)
       if(is_col_VaR == 'VaR'){
         colname_result <- paste0('Exceeded_', colname_test)
-        data[[colname_result]] <- ifelse(data$Return < data[[colname_test]], 1, 0)
+        data[[colname_result]] <- ifelse(data$Return <= data[[colname_test]], 1, 0)
       }
     }
     
-    # Computing cumulative exceedences for ES backtesting (values can sometimes vary slightly due to estimation errors of parameters of distribution due to numerical optimization and with that approximation!)
+    # Computing cumulative exceedences for ES backtesting (values could vary slightly because of distribution parameter estimation errors due to approximation in numerical optimization!)
     dist.spec.names.vec <- unlist(dist.spec.list)
-    names(dist.spec.names.vec) <- NULL
     var.spec.names.vec <- names(var.spec.list)
-    
+
     # Loop over rows of data
     for(i in 1:nrow(data)){
       
@@ -183,7 +194,13 @@ execution_of_VaR_ES_forecasting_function <- function(){
       for(var in var.spec.names.vec){
         
         # Loop over distribution assumptions
-        for(dist in dist.spec.names.vec){
+        for(dist_name in names(dist.spec.names.vec)){
+
+          if(dist_name == 'empirical'){
+            dist <- dist_name
+          } else {
+            dist <- dist.spec.names.vec[[dist_name]]
+          }
           
           # Current combination of var and dist
           var_dist <- paste0(var, '_', dist)
@@ -205,13 +222,30 @@ execution_of_VaR_ES_forecasting_function <- function(){
             
           } else {
             
-            # Compute value of inverse cdf at quantile of return
-            u <- pdist(distribution = data[[dist_var_dist]][i],
-                       q = data[['Return']][i],
-                       mu = data[[mu_var_dist]][i],
-                       sigma = data[[sigma_var_dist]][i],
-                       skew = data[[skew_var_dist]][i],
-                       shape = data[[shape_var_dist]][i])
+            # Compute value of cdf of standardized empirical innovation
+            if(dist == 'empirical'){
+              
+              # Extracting current empirical distribution from list with all empirical distributions
+              empirical_dist <- resid_std_emp_dist[[(i - window_width - 1)]]
+              
+              # Calculating current empirical standardized innovation using prediction of mu and sigma with actual return
+              return_i <- data[['Return']][i]
+              mu_i <- data[[mu_var_dist]][i]
+              sigma_i <- data[[sigma_var_dist]][i]
+              innovation_i <- (return_i - mu_i) / sigma_i
+              
+              # Calculate value of cdf of innovation on empirical distribution
+              u <- mean(empirical_dist <= innovation_i)
+              
+            } else {
+              # Calculate value of cdf of innovation on theoretical distribution
+              u <- pdist(distribution = data[[dist_var_dist]][i],
+                         q = data[['Return']][i],
+                         mu = data[[mu_var_dist]][i],
+                         sigma = data[[sigma_var_dist]][i],
+                         skew = data[[skew_var_dist]][i],
+                         shape = data[[shape_var_dist]][i])
+            }
             
             # Calculate cumulative violations
             if(u <= tolerance_lvl){
@@ -255,8 +289,6 @@ if(execution_of_VaR_ES_forecasting){
   NA_mu <<- vector()
   NA_sigma <<- vector()
   NA_q_tolerance_lvl <<- vector()
-  
-  # Empty vectors for NA information (NA in  # Empty vectors for NA information (NA in VaR and ES)ES)
   NA_integrated_value <<- vector()
   
   # Execution of VaR ES forecasting
@@ -284,7 +316,7 @@ if(execution_of_VaR_ES_forecasting){
                          integrated_value = NA_integrated_value)
   rm(NA_fit, NA_forecast, NA_mu, NA_sigma, NA_q_tolerance_lvl, NA_integrated_value)
   
-  # Assign proper date to integer value
+  # Assign proper date to integer values in NA_information
   for(NA_info in names(NA_information)){
     NA_information[[NA_info]] <- as.Date('1970-01-01') + NA_information[[NA_info]]
   }

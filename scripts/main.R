@@ -3,17 +3,18 @@
 #################################################################################
 
 #DEFINITLY:
-# Try other n.ahead
-# check that window length can be adjusted everywhere
 # Investigate error if Execution is TRUE for real data
-# Implement distribution free innovations -> use quantiles for VaR (and ES)
+# Maybe add second optimization if first fails
+# Set correct solver control parameters (investigate how solver works)
+
+# Check if backtest for empirical violations makes sense
 
 # NOTES:
 # old2 are good data sets
 
 # NOT NEEDED ANYMORE IF NO INTERPOLATION:
 # Implement way to handle remaining NAs and give out more information where values got interpolated!!! -> vector with date as value and column name as entry name? different vectors for fitting error, integration error, etc.
-# Join vectors with NA information with final table for lead and recieve correct date where NAs are interpolated
+# Join vectors with NA information with final table for lead and receive correct date where NAs are interpolated
 
 # MAYBE:
 # Create vector to store iteration time of each iteration
@@ -24,13 +25,22 @@
 
 # TEST OF WHOLE MODEL:
 # Test multiple simulations and check if results are logical
+# Test different parameters of program
 
 #CHALLANGES:
+# Implementing ES backtest which is robust against estimation uncertainty 
 
 # IDEAS:
 
 # LATER:
 # Recheck all needed packages
+
+
+# Recently changed:
+# width -> window_width
+# Exclude and investigate parameter data from return_na_VaR_ES
+# implement empirical distribution
+# change omega in simulation from 0.00005 to 0.05
 
 #################################################################################
 ####           General set-up                                                ####
@@ -70,7 +80,7 @@ arch = 1
 garch = 1
 
 # Width of estimation window for rolling forecasting
-width = 500
+window_width = 500
 
 # Tolerance level for VaR and ES
 tolerance_lvl = 0.05
@@ -79,24 +89,27 @@ tolerance_lvl = 0.05
 ### Sub setting parameters for faster calculations in development period     ###
 ################################################################################
 
-# Input data (comment out if not needed)
-data_include = 1:600
+# Number of forecasts
+number_forecasts = 200
+
+# Input data - has to be higher than parameter window_width (comment out if not needed) (can be set directly or using parameter number_forecasts)
+data_include = 1:(window_width+1+number_forecasts)
 
 # Indices (comment out if not needed)
 # Be careful when simulation = TRUE because indices are also subset then
 #index_include = 2
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(1)
+varspec_include = c(1,2)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1, 2)
+dist_include = c(1,5,11)
 
 # Should real data or simulated data be used? TRUE for simulated data
-simulation = TRUE
+simulation = FALSE
 
 # Number of simulations (specifiy if simulation = TRUE)
-number_simulations = 3
+number_simulations = 1
 
 # Execution of VaR and ES forecast
 # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
@@ -155,7 +168,8 @@ dist.spec.list <-  list(distr1 = 'norm',
                         distr7 = 'ghyp',
                         distr8 = 'nig', # nig leads to problems (a lot of NaN in spec 3 for GOLD -> Should I exclude it)
                         distr9 = 'ghst',  # optimazation takes often too long with this distribution -> Sould I exclude it?
-                        distr10 = 'jsu') # jsu leads to some problems (NaN in sigma in Spec 3 for GOLD -> Should I include it or not?)
+                        distr10 = 'jsu', # jsu leads to some problems (NaN in sigma in Spec 3 for GOLD -> Should I include it or not?)
+                        empirical = 'norm') # Normal distribution for QML estimation -> asymptotically consistent (USE IN TEXT AS JUSTIFICATION AND SEARCH FOR REFERENCE)
 
 
 #################################################################################
@@ -233,7 +247,7 @@ if(plotting_1){
   # Plotting VaR and ES
   for(index in indices){
     data <- get(index)
-    plot <- ggplot(data[-1:- (width + 2),], aes(x = as.Date(Date),
+    plot <- ggplot(data[-1:-(window_width + 2),], aes(x = as.Date(Date),
                                                 y = Return)) +
       geom_point() +
       geom_line(aes(y = VaR_spec2_norm),
@@ -252,13 +266,13 @@ if(plotting_1){
 plotting_2 = FALSE
 if(plotting_2){
 # Nice plot of VaR and ES for WIG spec2 sged
-ggplot(data =  sim1[-1:-502,],
+ggplot(data =  sim1[-1:-(window_width + 2),],
        mapping = aes(x = Date,
                      y = Return)) +
-  geom_point(aes(colour = as.factor(Exceeded_VaR_spec1_sstd))) +
-  geom_line(aes(y = VaR_spec1_sstd),
+  geom_point(aes(colour = as.factor(Exceeded_VaR_spec1_norm))) +
+  geom_line(aes(y = VaR_spec1_norm),
             col = 'orange') +
-  geom_line(aes(y = ES_spec1_sstd),
+  geom_line(aes(y = ES_spec1_norm),
             col = 'purple') +
   scale_color_manual(values = c("1" = "red", "0" = "black"),
                      name = "Exceeded VaR",

@@ -11,7 +11,7 @@ for(i in 1:number_simulations){
                           mean.model = list(armaOrder = c(0,0)),
                           distribution.model = 'sstd',
                           fixed.pars = list(mu = 0.00025,
-                                            omega = 0.00005,
+                                            omega = 0.05,
                                             alpha1 = 0.1,
                                             beta1 = 0.85,
                                             skew = -1,
@@ -32,6 +32,14 @@ for(i in 1:number_simulations){
     mutate(Date = as.Date('2000-01-01') + 1:nrow(garchsimlation_df)) %>%
     rename(Return = V1) %>%
     mutate(Price = 100 * exp(cumsum(Return)))
+  
+  # Creating first row of data frame with NA in Return and 100 as starting price
+  garchsimlation_df_first_row <- data.frame(Date = as.Date('2000-01-01'),
+                                            Return = NA,
+                                            Price = 100)
+  
+  # Binding both data frames
+  garchsimlation_df <- bind_rows(garchsimlation_df_first_row, garchsimlation_df)
   
   
   # Storing data in simulation folder

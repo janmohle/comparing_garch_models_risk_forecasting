@@ -25,9 +25,9 @@ for(index in indices){
                                                       tolerance_lvl = tolerance_lvl)
   
   # ES independence backtest
-  index.backtest.results[['ES.indep']] <- ES_indep_backtest(data = index_data,
-                                                            tolerance_lvl = tolerance_lvl,
-                                                            lags = 5)
+  index.backtest.results[['ES.UC']] <- ES_cc_backtest(data = index_data,
+                                                      tolerance_lvl = tolerance_lvl,
+                                                      lags = 5)
   
   Backtest.results[[index]] <- index.backtest.results
   

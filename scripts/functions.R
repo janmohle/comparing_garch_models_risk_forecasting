@@ -206,7 +206,7 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 
 
 
 ############################################################################################
-### Returns one-step-ahead VaR and ES forecast  (convert input data to zoo object first) ###
+### Returns one-step-ahead VaR and ES forecast  (firstly convert input data to zoo object) ###
 ############################################################################################
 predict_VaR_ES_1_ahead <- function(data,
                                    var.spec,
@@ -214,7 +214,8 @@ predict_VaR_ES_1_ahead <- function(data,
                                    dist.spec,
                                    tolerance_lvl,
                                    index_name,
-                                   spec_i){
+                                   spec_i,
+                                   dist_spec){
   
   # Test if data is zoo object and stop function if not
   if(!is.zoo(data)){
@@ -227,14 +228,14 @@ predict_VaR_ES_1_ahead <- function(data,
   index_last_obs <- tail(index(data), 1)
   
   # Function that returns NA for VaR and ES if both can't be calculated and writes message to console
-  return_na_VaR_ES <- function(data){
+  return_na_VaR_ES <- function(){
     VaR <- zoo(NA, index_last_obs)
     ES <- zoo(NA, index_last_obs)
     mu <- zoo(NA, index_last_obs)
     sigma <- zoo(NA, index_last_obs)
     skew <- zoo(NA, index_last_obs)
     shape <- zoo(NA, index_last_obs)
-    dist.spec <- zoo(NA, index_last_obs)
+    dist.spec <- zoo(dist.spec, index_last_obs)
     
     VaR_and_ES <- list(VaR = VaR,
                        ES = ES,
@@ -244,9 +245,9 @@ predict_VaR_ES_1_ahead <- function(data,
                        shape = shape,
                        dist = dist.spec)
     
-    # Print date which can't be calculated and will later be interpolated
+    # Print date which can't be calculated
     date <- index(VaR_and_ES$VaR)
-    message <- paste0('Preceeding date of date where VaR and ES get interpolated (NOT ANYMORE -> exclude message): ', date, '\n\n')
+    message <- paste0('Preceeding date of date where VaR and ES cannot be calculated: ', date, '\n\n')
     cat(message)
     
     # Return VaR and ES
@@ -258,63 +259,42 @@ predict_VaR_ES_1_ahead <- function(data,
                      mean.model = mean.spec,
                      distribution.model = dist.spec)
   
-  # Fitting GARCH model (hybrid automatically tries different solver in order: solnp, nlminb, gosolnp, nloptr):
+  # Fitting GARCH model
   # Return NA if fitting doesn't work
   fit <- tryCatch(
     {
       ugarchfit(spec = spec,
                 data = data,
                 solver = 'hybrid',
-                solver.control = list(n.restarts = 5,  # Number of restarts for the global solver (gosolnp)
+                solver.control = list(n.restarts = 5,                                     # Number of restarts for the global solver (gosolnp)
                                       
                                       # Global solver settings (gosolnp)
                                       global.solver.control = list(maxit = 50000,         # Maximum number of iterations
                                                                    xtol_rel = 1e-6,       # Tolerance for parameter changes
-                                                                   ftol_rel = 1e-8,       # Tolerance for function value changes (likelihood function)
-                                                                   trace = 0              # Verbose output to monitor progress (0 means no output)
+                                                                   ftol_rel = 1e-8        # Tolerance for function value changes (likelihood function)
                                                                    ),
                                       
                                       # Local solver settings (nloptr)
                                       local.solver = "nloptr",
                                       local.solver.control = list(maxeval = 50000,       # Maximum number of iterations
                                                                   xtol_rel = 1e-6,       # Tolerance for parameter changes
-                                                                  ftol_rel = 1e-8,       # Tolerance for function value changes (likelihood function)
-                                                                  trace = 0              # Verbose output to monitor progress (0 means no output)
+                                                                  ftol_rel = 1e-8        # Tolerance for function value changes (likelihood function)
                                                                   )
                                       )
                 )
       },
     error = function(e){
-      cat('\nSolvers did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for VaR and ES\n\n')
+      cat('\nSolvers did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message, '\nNAs get returned for VaR and ES\n')
       
       return(NA)
     }
   )
-    
-  
-  
-  
-  
-  
-  
-  
   
   
   # Information regarding convergence (Exclude later again or store information in different way)
   #fit_convergence <- fit@fit$convergence
   #print(fit_convergence)
   #rm(fit_convergence)
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   
   
@@ -327,7 +307,7 @@ predict_VaR_ES_1_ahead <- function(data,
     NA_fit <<- c(NA_fit, new_entry_NA_fit)
     
     # Returning NAs for VaR and ES
-    return(return_na_VaR_ES(data = data))
+    return(return_na_VaR_ES())
   }
   
   # Extracting coefficients from fit
@@ -336,6 +316,7 @@ predict_VaR_ES_1_ahead <- function(data,
   # Extracting skewness and shape parameter (if not prevalent, NA gets assigned)
   skew <- ifelse('skew' %in% names(coef_fit), coef_fit['skew'], NA)
   shape <- ifelse('shape' %in% names(coef_fit), coef_fit['shape'], NA)
+  
 
   # One-step-ahead forecast
   # Return NA if forecasting doesn't work
@@ -345,7 +326,7 @@ predict_VaR_ES_1_ahead <- function(data,
                      n.ahead = 1)
     },
     error = function(e){
-      cat('\nForecasting did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for VaR and ES\n\n')
+      cat('\nForecasting did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message, '\nNAs get returned for VaR and ES\n')
       
       return(NA)
     }
@@ -360,7 +341,7 @@ predict_VaR_ES_1_ahead <- function(data,
     NA_forecast <<- c(NA_forecast, new_entry_NA_forecast)
     
     # Returning NAs for VaR and ES
-    return(return_na_VaR_ES(data = data))
+    return(return_na_VaR_ES())
   }
   
   # Extraction of predicted mean and standard deviation
@@ -370,7 +351,7 @@ predict_VaR_ES_1_ahead <- function(data,
   # Writing message if mu can't be calculated and return NA for VaR and ES
   if(is.nan(mu)){
     # Console message
-    cat('\nMu cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,')\nNA gets returned for VaR and ES\n\n')
+    cat('\nMu cannot be calculated for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,')\nNAs get returned for VaR and ES\n')
     
     # Vector with NA information (global scope)
     new_entry_NA_mu <- tail(index(data), 1)
@@ -378,13 +359,13 @@ predict_VaR_ES_1_ahead <- function(data,
     NA_mu <<- c(NA_mu, new_entry_NA_mu)
     
     # Returning NAs for VaR and ES
-    return(return_na_VaR_ES(data = data))
+    return(return_na_VaR_ES())
   }
       
   # Writing message if sigma can't be calculated and return NA for VaR and ES
   if(is.nan(sigma)){
     # Console message
-    cat('\nSigma cannot be calculated for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,')\nNA gets returned for VaR and ES\n\n')
+    cat('\nSigma cannot be calculated for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,')\nNAs get returned for VaR and ES\n')
     
     # Vector with NA information (global scope)
     new_entry_NA_sigma <- tail(index(data), 1)
@@ -392,9 +373,61 @@ predict_VaR_ES_1_ahead <- function(data,
     NA_sigma <<- c(NA_sigma, new_entry_NA_sigma)
     
     # Returning NAs for VaR and ES
-    return(return_na_VaR_ES(data = data))
+    return(return_na_VaR_ES())
   }
       
+  # Using empirical innovations for VaR and ES forecast if dist_spec = empirical
+  if(dist_spec == 'empirical'){
+ 
+    # Standardized residuals
+    resid_std <- residuals(fit, standardize = TRUE)
+    
+    # Storing empirical distribution of standardized innovations in global list with dates as names
+    if(!exists('resid_std_emp_dist')){
+      resid_std_emp_dist <<- list()
+    }
+    resid_std_emp_dist[[as.character(index_last_obs)]] <<- as.vector(resid_std)
+    
+    # pth quantile of residuals
+    q_resid_std <- quantile(resid_std,
+                            probs = tolerance_lvl,
+                            na.rm = TRUE,
+                            names = FALSE,
+                            type = 8) # Approximately median unbiased regardless of distribution
+    
+    # Calculating VaR
+    VaR <- mu + sigma * q_resid_std
+
+    # Extract standardized residuals which exceed q_resid_std
+    resid_ES <- resid_std[resid_std <= q_resid_std]
+    
+    # Mean of exceeded q_resid_std
+    mean_resid_ES <- mean(resid_ES)
+    
+    # Remove name from mean_resid_ES
+    names(mean_resid_ES) <- NULL
+    
+    # Calculating ES
+    ES <- mu + sigma * mean_resid_ES
+
+    # Change skew and shape with NAs to zoo object and insert empirical as distribution specification
+    skew <- zoo(NA, index_last_obs)
+    shape <- zoo(NA, index_last_obs)
+    dist.spec <- zoo('empirical', index_last_obs)
+    
+    # Combine VaR and ES in one list
+    VaR_and_ES <- list(VaR = VaR,
+                       ES = ES,
+                       mu = mu,
+                       sigma = sigma,
+                       skew = skew,
+                       shape = shape,
+                       dist = dist.spec)
+    
+    #Return results
+    return(VaR_and_ES)
+  }
+
   # Function returns pth quantile of current distribution
   pth_quantile <- function(p) {
     q <- qdist(distribution = dist.spec,
@@ -410,7 +443,7 @@ predict_VaR_ES_1_ahead <- function(data,
     {
       pth_quantile(p = tolerance_lvl)
     }, error = function(e){
-      cat('\nQuantile of tolerance level cannot be calculated (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for VaR and ES\n\n')
+      cat('\nQuantile of tolerance level cannot be calculated (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message, '\nNAs get returned for VaR and ES\n')
       
       return(NA)
     }
@@ -425,7 +458,7 @@ predict_VaR_ES_1_ahead <- function(data,
     NA_q_tolerance_lvl <<- c(NA_q_tolerance_lvl, new_entry_NA_q_tolerance_lvl)
     
     # Returning NAs for VaR and ES
-    return(return_na_VaR_ES(data = data))
+    return(return_na_VaR_ES())
   }
   
   # Calculation of one-step-ahead VaR forecast
@@ -443,7 +476,7 @@ predict_VaR_ES_1_ahead <- function(data,
       integrated$value
       
     }, error = function(e) {
-      cat('\nIntegration did not work for one observation (Index: ', index_name, ' Spec: ', spec_i, ', Dist: ', dist.spec,'):', e$message, '\nNA gets returned for ES\n\n')
+      cat('\nIntegration did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message', e$message, '\nNA gets returned for ES\n')
       
       return(NULL)
     }
@@ -470,9 +503,9 @@ predict_VaR_ES_1_ahead <- function(data,
                        shape = shape,
                        dist = dist.spec)
     
-    # Print date which can't be calculated and will later be interpolated
+    # Print date which can't be calculated
     date <- index(VaR_and_ES$ES)
-    message <- paste0('Preceeding date of date where ES gets interpolated (NOT ANYMORE -> exclude info): ', date, '\n\n')
+    message <- paste0('Preceeding date of date where ES cannot be calculated: ', date, '\n\n')
     cat(message)
     
     # Return VaR and ES
@@ -571,25 +604,25 @@ VaR_Christofferson1_backtest <- function(data){
       # n_ij starts with 0 in for each column
       n00 <- 0
       n11 <- 0
-      n01 <- 0
       n10 <- 0
+      n01 <- 0
       
       # Using only non-missing entries
       col_data <- na.omit(data[[col]])
       
       # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
       for(i in 2:length(col_data)){
-        if(col_data[i] == 0 & col_data[i - 1] == 0){
+        if(col_data[i - 1] == 0 & col_data[i] == 0){
           n00 <- n00 + 1
         }
-        else if(col_data[i] == 1 & col_data[i - 1] == 1){
+        else if(col_data[i - 1] == 1 & col_data[i] == 1){
           n11 <- n11 + 1
         }
-        else if(col_data[i] == 0 & col_data[i - 1] == 1){
-          n01 <- n01 + 1
-        }
-        else if(col_data[i] == 1 & col_data[i - 1] == 0){
+        else if(col_data[i - 1] == 1 & col_data[i] == 0){
           n10 <- n10 + 1
+        }
+        else if(col_data[i - 1] == 0 & col_data[i] == 1){
+          n01 <- n01 + 1
         }
         else {
           stop('Error: Values out of domain {0, 1}')
@@ -597,14 +630,14 @@ VaR_Christofferson1_backtest <- function(data){
       }
       
       # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
-      prop_exceeded <- (n01 + n11) / (n00 + n11 + n01 + n10)
-      prop_exceeded0 <- n01 / (n00 + n01)
-      prop_exceeded1 <- n11 / (n10 + n11)
+      prop_exceeded <- (n01 + n11) / (n00 + n11 + n10 + n01)
+      prop_exceeded11 <- n11 / (n10 + n11)
+      prop_exceeded01 <- n01 / (n00 + n01)
       
       # Likelihood Ratio Test
       # Likelihood of restricted (L_r) and unrestricted (L_ur) model
       L_r <- prop_exceeded ^ (n01 + n11) * (1 - prop_exceeded) ^ (n00 + n10)
-      L_ur <- prop_exceeded0 ^ n01 * (1 - prop_exceeded0) ^ n00 * prop_exceeded1 ^ n11 * (1 - prop_exceeded1) ^ n10
+      L_ur <- prop_exceeded01 ^ n01 * (1 - prop_exceeded01) ^ n00 * prop_exceeded11 ^ n11 * (1 - prop_exceeded11) ^ n10
       
       # Test statistic
       LR <- -2 * log(L_r / L_ur)
@@ -646,25 +679,25 @@ VaR_Christofferson2_backtest <- function(data,
       # n_ij starts with 0 in for each column
       n00 <- 0
       n11 <- 0
-      n01 <- 0
       n10 <- 0
+      n01 <- 0
       
       # Using only non-missing entries
       col_data <- na.omit(data[[col]])
       
       # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
       for(i in 2:length(col_data)){
-        if(col_data[i] == 0 & col_data[i - 1] == 0){
+        if(col_data[i - 1] == 0 & col_data[i] == 0){
           n00 <- n00 + 1
         }
-        else if(col_data[i] == 1 & col_data[i - 1] == 1){
+        else if(col_data[i - 1] == 1 & col_data[i] == 1){
           n11 <- n11 + 1
         }
-        else if(col_data[i] == 0 & col_data[i - 1] == 1){
-          n01 <- n01 + 1
-        }
-        else if(col_data[i] == 1 & col_data[i - 1] == 0){
+        else if(col_data[i - 1] == 1 & col_data[i] == 0){
           n10 <- n10 + 1
+        }
+        else if(col_data[i - 1] == 0 & col_data[i] == 1){
+          n01 <- n01 + 1
         }
         else {
           stop('Error: Values out of domain {0, 1}')
@@ -672,13 +705,13 @@ VaR_Christofferson2_backtest <- function(data,
       }
       
       # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
-      prop_exceeded0 <- n01 / (n00 + n01)
-      prop_exceeded1 <- n11 / (n10 + n11)
+      prop_exceeded01 <- n01 / (n00 + n01)
+      prop_exceeded11 <- n11 / (n10 + n11)
       
       # Likelihood Ratio Test
       # Likelihood of restricted (L_r) and unrestricted (L_ur) model
       L_r <- tolerance_lvl ^ (n01 + n11) * (1 - tolerance_lvl) ^ (n00 + n10)
-      L_ur <- prop_exceeded0 ^ n01 * (1 - prop_exceeded0) ^ n00 * prop_exceeded1 ^ n11 * (1 - prop_exceeded1) ^ n10
+      L_ur <- prop_exceeded01 ^ n01 * (1 - prop_exceeded01) ^ n00 * prop_exceeded11 ^ n11 * (1 - prop_exceeded11) ^ n10
       
       # Test statistic
       LR <- -2 * log(L_r / L_ur)
@@ -750,11 +783,11 @@ ES_uc_backtest <- function(data,
 }
 
 ############################################################################################
-### ES independence Backtest without correction for parameter estimation risk.           ###
+### Conditional coverage test ES without adjustment for parameter estimation risk        ###
 ############################################################################################
-ES_indep_backtest <- function(data,
-                              tolerance_lvl,
-                              lags){
+ES_cc_backtest <- function(data,
+                           tolerance_lvl,
+                           lags){
   # Preparing result vectors
   C_all <- vector()
   p_all <- vector()
