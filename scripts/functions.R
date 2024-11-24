@@ -319,6 +319,8 @@ predict_VaR_ES_1_ahead <- function(data,
     # solver.control specified for gosolnp and nloptr which are used if previous optimizer have failed
     fit <- tryCatch(
       {
+        print('hybrid start')
+        
         ugarchfit(spec = spec,
                   data = data,
                   solver = 'hybrid',
@@ -336,8 +338,8 @@ predict_VaR_ES_1_ahead <- function(data,
     
     
     
+    print('hybrid end')
     
-    print('hybrid')
     #print(coef(fit))
     
     
@@ -778,203 +780,169 @@ predict_VaR_ES_1_ahead <- function(data,
 
 
 ############################################################################################
-###  Kupiec test: Unonditional Coverage VaR (if column name starts with Exceeded)        ###
+###  Kupiec test: Unonditional Coverage VaR                                              ###
 ############################################################################################
-VaR_Kupiec_backtest <- function(data,
+VaR_Kupiec_backtest <- function(exceedences,
+                                speci_dist,
                                 tolerance_lvl){
   
-  # Preparing result vectors
-  LR_all <- vector()
-  p_all <- vector()
+  # Count number of entries which are not NAs
+  # n_entries <- sum(exceedences[!is.na(exceedences)])
   
-  for(col in names(data)){
-    
-    # Test if column consists of exceedences
-    is_name_Exceeded <- substr(col, 1, 8)
-    if(is_name_Exceeded == 'Exceeded'){
-      
-      # Using only non-missing entries
-      col_data <- na.omit(data[[col]])
-      
-      # Calculating number of non-exceedences, exceedences and proportion of exceedences
-      n1 <- sum(col_data)
-      n0 <- length(col_data) - n1
-      prop_exceeded <- n1 / (n1 + n0)
-      
-      # Likelihood Ratio Test
-      # Likelihood of unrestricted (L_ur) and restricted (L_r) model
-      L_ur <- prop_exceeded ^ n1 * (1 - prop_exceeded) ^ n0
-      L_r <- tolerance_lvl ^ n1 * (1 - tolerance_lvl) ^ n0
-      
-      # Test statistic
-      LR <- -2 * log(L_r / L_ur)
-      
-      # p value (LR ~ X^2(1))
-      p <- pchisq(q = LR,
-                  df = 1,
-                  lower.tail = FALSE)
-
-      # Appending result vectors and add name
-      entryname <- substr(col, 14, nchar(col))
-      
-      LR_all[entryname] <- LR
-      p_all[entryname] <- p
-    }
-  }
+  # Using only non-missing entries
+  exceedences <- na.omit(exceedences)
+  
+  # Calculating number of non-exceedences, exceedences and proportion of exceedences
+  n1 <- sum(exceedences)
+  n0 <- length(exceedences) - n1
+  prop_exceeded <- n1 / (n1 + n0)
+  
+  # Likelihood Ratio Test
+  # Likelihood of unrestricted (L_ur) and restricted (L_r) model
+  L_ur <- prop_exceeded ^ n1 * (1 - prop_exceeded) ^ n0
+  L_r <- tolerance_lvl ^ n1 * (1 - tolerance_lvl) ^ n0
+  
+  # Test statistic and assign name speci_dist
+  LR <- -2 * log(L_r / L_ur)
+  names(LR) <- speci_dist
+  
+  # p value (LR ~ X^2(1)) and assign name speci_dist
+  p <- pchisq(q = LR,
+              df = 1,
+              lower.tail = FALSE)
+  names(p) <- speci_dist
   
   #Return results
-  results <- list(LR = LR_all,
-                  p = p_all)
+  results <- list(LR = LR,
+                  p = p)
   return(results)
 }
 
 
 ############################################################################################
-###  Christofferson 1 test: Independence of (if column name starts with Exceeded)        ###
+###  Christofferson 1 test: Independence of violations                                   ###
 ############################################################################################
-VaR_Christofferson1_backtest <- function(data){
+VaR_Christofferson1_backtest <- function(exceedences,
+                                         speci_dist){
   
-  # Preparing result vectors
-  LR_all <- vector()
-  p_all <- vector()
+  # n_ij starts with 0 in for each column
+  n00 <- 0
+  n11 <- 0
+  n10 <- 0
+  n01 <- 0
   
-  for(col in names(data)){
-    
-    # Test if column consists of exceedences
-    is_name_Exceeded <- substr(col, 1, 8)
-    if(is_name_Exceeded == 'Exceeded'){
-      
-      # n_ij starts with 0 in for each column
-      n00 <- 0
-      n11 <- 0
-      n10 <- 0
-      n01 <- 0
-      
-      # Using only non-missing entries
-      col_data <- na.omit(data[[col]])
-      
-      # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
-      for(i in 2:length(col_data)){
-        if(col_data[i - 1] == 0 & col_data[i] == 0){
-          n00 <- n00 + 1
-        }
-        else if(col_data[i - 1] == 1 & col_data[i] == 1){
-          n11 <- n11 + 1
-        }
-        else if(col_data[i - 1] == 1 & col_data[i] == 0){
-          n10 <- n10 + 1
-        }
-        else if(col_data[i - 1] == 0 & col_data[i] == 1){
-          n01 <- n01 + 1
-        }
-        else {
-          stop('Error: Values out of domain {0, 1}')
-        }
-      }
-      
-      # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
-      prop_exceeded <- (n01 + n11) / (n00 + n11 + n10 + n01)
-      prop_exceeded11 <- n11 / (n10 + n11)
-      prop_exceeded01 <- n01 / (n00 + n01)
-      
-      # Likelihood Ratio Test
-      # Likelihood of restricted (L_r) and unrestricted (L_ur) model
-      L_r <- prop_exceeded ^ (n01 + n11) * (1 - prop_exceeded) ^ (n00 + n10)
-      L_ur <- prop_exceeded01 ^ n01 * (1 - prop_exceeded01) ^ n00 * prop_exceeded11 ^ n11 * (1 - prop_exceeded11) ^ n10
-      
-      # Test statistic
-      LR <- -2 * log(L_r / L_ur)
-      
-      # p value (LR ~ X^2(1))
-      p <- pchisq(q = LR,
-                  df = 1,
-                  lower.tail = FALSE)
-      
-      # Appending result vectors and add name
-      entryname <- substr(col, 14, nchar(col))
-      
-      LR_all[entryname] <- LR
-      p_all[entryname] <- p
+  # Count number of entries which are not NAs
+  # n_entries <- sum(exceedences[!is.na(exceedences)])
+  
+  # Using only non-missing entries
+  exceedences <- na.omit(exceedences)
+  
+  # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
+  for(i in 2:length(exceedences)){
+    if(exceedences[i - 1] == 0 & exceedences[i] == 0){
+      n00 <- n00 + 1
+    }
+    else if(exceedences[i - 1] == 1 & exceedences[i] == 1){
+      n11 <- n11 + 1
+    }
+    else if(exceedences[i - 1] == 1 & exceedences[i] == 0){
+      n10 <- n10 + 1
+    }
+    else if(exceedences[i - 1] == 0 & exceedences[i] == 1){
+      n01 <- n01 + 1
+    }
+    else {
+      stop('Error: Values out of domain {0, 1}')
     }
   }
-
+  
+  # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
+  prop_exceeded <- (n01 + n11) / (n00 + n11 + n10 + n01)
+  prop_exceeded11 <- n11 / (n10 + n11)
+  prop_exceeded01 <- n01 / (n00 + n01)
+  
+  # Likelihood Ratio Test
+  # Likelihood of restricted (L_r) and unrestricted (L_ur) model
+  L_r <- prop_exceeded ^ (n01 + n11) * (1 - prop_exceeded) ^ (n00 + n10)
+  L_ur <- prop_exceeded01 ^ n01 * (1 - prop_exceeded01) ^ n00 * prop_exceeded11 ^ n11 * (1 - prop_exceeded11) ^ n10
+  
+  # Test statistic and assign name speci_dist
+  LR <- -2 * log(L_r / L_ur)
+  names(LR) <- speci_dist
+  
+  # p value (LR ~ X^2(1)) and assign name speci_dist
+  p <- pchisq(q = LR,
+              df = 1,
+              lower.tail = FALSE)
+  names(p) <- speci_dist
+  
   #Return results
-  results <- list(LR = LR_all,
-                  p = p_all)
+  results <- list(LR = LR,
+                  p = p)
   return(results)
 }
 
+
 ############################################################################################
-### Christofferson 2 test: Conditional Coverage VaR (if column name starts with Exceeded) ##
+### Christofferson 2 test: Conditional Coverage VaR                                      ###
 ############################################################################################
-VaR_Christofferson2_backtest <- function(data,
+VaR_Christofferson2_backtest <- function(exceedences,
+                                         speci_dist,
                                          tolerance_lvl){
-  # Preparing result vectors
-  LR_all <- vector()
-  p_all <- vector()
   
-  for(col in names(data)){
-    
-    # Test if column consists of exceedences
-    is_name_Exceeded <- substr(col, 1, 8)
-    if(is_name_Exceeded == 'Exceeded'){
-      
-      # n_ij starts with 0 in for each column
-      n00 <- 0
-      n11 <- 0
-      n10 <- 0
-      n01 <- 0
-      
-      # Using only non-missing entries
-      col_data <- na.omit(data[[col]])
-      
-      # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
-      for(i in 2:length(col_data)){
-        if(col_data[i - 1] == 0 & col_data[i] == 0){
-          n00 <- n00 + 1
-        }
-        else if(col_data[i - 1] == 1 & col_data[i] == 1){
-          n11 <- n11 + 1
-        }
-        else if(col_data[i - 1] == 1 & col_data[i] == 0){
-          n10 <- n10 + 1
-        }
-        else if(col_data[i - 1] == 0 & col_data[i] == 1){
-          n01 <- n01 + 1
-        }
-        else {
-          stop('Error: Values out of domain {0, 1}')
-        }
-      }
-      
-      # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
-      prop_exceeded01 <- n01 / (n00 + n01)
-      prop_exceeded11 <- n11 / (n10 + n11)
-      
-      # Likelihood Ratio Test
-      # Likelihood of restricted (L_r) and unrestricted (L_ur) model
-      L_r <- tolerance_lvl ^ (n01 + n11) * (1 - tolerance_lvl) ^ (n00 + n10)
-      L_ur <- prop_exceeded01 ^ n01 * (1 - prop_exceeded01) ^ n00 * prop_exceeded11 ^ n11 * (1 - prop_exceeded11) ^ n10
-      
-      # Test statistic
-      LR <- -2 * log(L_r / L_ur)
-      
-      # p value (LR ~ X^2(2))
-      p <- pchisq(q = LR,
-                  df = 2,
-                  lower.tail = FALSE)
-      
-      # Appending result vectors and add name
-      entryname <- substr(col, 14, nchar(col))
-      
-      LR_all[entryname] <- LR
-      p_all[entryname] <- p
+  # n_ij starts with 0 in for each column
+  n00 <- 0
+  n11 <- 0
+  n10 <- 0
+  n01 <- 0
+  
+  # Count number of entries which are not NAs
+  # n_entries <- sum(exceedences[!is.na(exceedences)])
+  
+  # Using only non-missing entries
+  exceedences <- na.omit(exceedences)
+  
+  # Assign n_ij (n_ij = 1 with i in {0,1} and j in {0,1})
+  for(i in 2:length(exceedences)){
+    if(exceedences[i - 1] == 0 & exceedences[i] == 0){
+      n00 <- n00 + 1
+    }
+    else if(exceedences[i - 1] == 1 & exceedences[i] == 1){
+      n11 <- n11 + 1
+    }
+    else if(exceedences[i - 1] == 1 & exceedences[i] == 0){
+      n10 <- n10 + 1
+    }
+    else if(exceedences[i - 1] == 0 & exceedences[i] == 1){
+      n01 <- n01 + 1
+    }
+    else {
+      stop('Error: Values out of domain {0, 1}')
     }
   }
-
+  
+  # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
+  prop_exceeded01 <- n01 / (n00 + n01)
+  prop_exceeded11 <- n11 / (n10 + n11)
+  
+  # Likelihood Ratio Test
+  # Likelihood of restricted (L_r) and unrestricted (L_ur) model
+  L_r <- tolerance_lvl ^ (n01 + n11) * (1 - tolerance_lvl) ^ (n00 + n10)
+  L_ur <- prop_exceeded01 ^ n01 * (1 - prop_exceeded01) ^ n00 * prop_exceeded11 ^ n11 * (1 - prop_exceeded11) ^ n10
+  
+  # Test statistic and assign name speci_dist
+  LR <- -2 * log(L_r / L_ur)
+  names(LR) <- speci_dist
+  
+  # p value (LR ~ X^2(2)) and assign name speci_dist
+  p <- pchisq(q = LR,
+              df = 2,
+              lower.tail = FALSE)
+  names(p) <- speci_dist
+  
   #Return results
-  results <- list(LR = LR_all,
-                  p = p_all)
+  results <- list(LR = LR,
+                  p = p)
   return(results)
 }
 
@@ -982,104 +950,84 @@ VaR_Christofferson2_backtest <- function(data,
 ############################################################################################
 ### Unconditional coverage test ES without adjustment for parameter estimation risk      ###
 ############################################################################################
-ES_uc_backtest <- function(data,
+ES_uc_backtest <- function(CumVio,
+                           speci_dist,
                            tolerance_lvl){
   
-  # Preparing result vectors
-  U_all <- vector()
-  p_all <- vector()
+  # Count number of entries which are not NAs
+  # n_entries <- sum(CumVio[!is.na(CumVio)])
   
-  for(col in names(data)){
-    
-    # Test if column consists of cumulative violations
-    is_CumVio <- substr(col, 1, 6)
-    if(is_CumVio == 'CumVio'){
-      
-      # Using only non-missing entries
-      H_hut <- na.omit(data[[col]])
-      
-      # Mean of H_huts
-      H_mean <- mean(H_hut)
-      
-      # Number of non-missing entries
-      n <- length(H_hut)
-      
-      # Calculating test statistic
-      U <- sqrt(n) * (H_mean - tolerance_lvl / 2) / sqrt(tolerance_lvl * (1 / 3 - tolerance_lvl / 4))
-      
-      # Calculating p value
-      p <- 2 * pnorm(q = abs(U),
-                     lower.tail = FALSE)
-        
-      # Appending result vectors and add name
-      entryname <- substr(col, 8, nchar(col))
-      
-      U_all[entryname] <- U
-      p_all[entryname] <- p
-    }
-  }
+  # Using only non-missing entries
+  H_hut <- na.omit(CumVio)
+  
+  # Mean of H_huts
+  H_mean <- mean(H_hut)
+  
+  # Number of non-missing entries
+  n <- length(H_hut)
+  
+  # Calculating test statistic and assign name speci_dist
+  U <- sqrt(n) * (H_mean - tolerance_lvl / 2) / sqrt(tolerance_lvl * (1 / 3 - tolerance_lvl / 4))
+  names(U) <- speci_dist
+  
+  # Calculating p value and assign name speci_dist
+  p <- 2 * pnorm(q = abs(U),
+                 lower.tail = FALSE)
+  names(p) <- speci_dist
+  
   
   # Return results
-  result <- list(U = U_all,
-                 p = p_all)
+  result <- list(U = U,
+                 p = p)
+  
   return(result)
 }
+
 
 ############################################################################################
 ### Conditional coverage test ES without adjustment for parameter estimation risk        ###
 ############################################################################################
-ES_cc_backtest <- function(data,
+ES_cc_backtest <- function(CumVio,
+                           speci_dist,
                            tolerance_lvl,
                            lags){
-  # Preparing result vectors
-  C_all <- vector()
-  p_all <- vector()
   
-  for(col in names(data)){
-    
-    # Test if column consists of cumulative violations
-    is_CumVio <- substr(col, 1, 6)
-    if(is_CumVio == 'CumVio'){
-      
-      # Using only non-missing entries
-      H_hut <- na.omit(data[[col]])
-      
-      # Number of entries
-      n <- length(H_hut)
-      
-      # Variance of H_huts
-      gamma_n0 <- 1 / n * sum((H_hut - tolerance_lvl / 2) * (H_hut - tolerance_lvl / 2))
-      
-      # Vector with covariance between H_hut and j-laged H_hut
-      gamma_nj <- vector(length = lags)
-      
-      for(j in 1:lags){
-        gamma_nj[j] <- 1 / (n - j) * sum((H_hut[(j+1):n] - tolerance_lvl / 2) * (H_hut[1:(n-j)] - tolerance_lvl / 2))
-      }
-      
-      # Vector with correlations between H_hut and j-laged H_hut
-      rho_nj <- gamma_nj / gamma_n0
-      
-      # Test statistic for Box-Pierce-Test
-      C <- n * sum(rho_nj ^ 2)
-      
-      # p-value of test statistic
-      df <- length(rho_nj)
-      
-      p <- pchisq(q = C,
-                  df = df,
-                  lower.tail = FALSE)
-      
-      # Appending result vectors and add name
-      entryname <- substr(col, 8, nchar(col))
-      
-      C_all[entryname] <- C
-      p_all[entryname] <- p
-    }
+  # Count number of entries which are not NAs
+  # n_entries <- sum(CumVio[!is.na(CumVio)])
+  
+  # Using only non-missing entries
+  H_hut <- na.omit(CumVio)
+  
+  # Number of entries
+  n <- length(H_hut)
+  
+  # Variance of H_huts
+  gamma_n0 <- 1 / n * sum((H_hut - tolerance_lvl / 2) * (H_hut - tolerance_lvl / 2))
+  
+  # Vector with covariance between H_hut and j-laged H_hut
+  gamma_nj <- vector(length = lags)
+  
+  for(j in 1:lags){
+    gamma_nj[j] <- 1 / (n - j) * sum((H_hut[(j+1):n] - tolerance_lvl / 2) * (H_hut[1:(n-j)] - tolerance_lvl / 2))
   }
   
+  # Vector with correlations between H_hut and j-laged H_hut
+  rho_nj <- gamma_nj / gamma_n0
+  
+  # Test statistic for Box-Pierce-Test and assign name speci_dist
+  C <- n * sum(rho_nj ^ 2)
+  names(C) <- speci_dist
+  
+  # p-value of test statistic and assign name speci_dist
+  df <- length(rho_nj)
+  
+  p <- pchisq(q = C,
+              df = df,
+              lower.tail = FALSE)
+  names(C) <- speci_dist
+  
   #Return results
-  results <- list(C = C_all,
-                  p = p_all)
+  results <- list(C = C,
+                  p = p)
   return(results)
 }

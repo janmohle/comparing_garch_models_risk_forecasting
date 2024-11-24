@@ -124,7 +124,7 @@ index_include = c(3,4)
 varspec_include = c(1,2,3)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1, 8, 11)
+dist_include = c(1, 5, 11)
 
 # Should real data or simulated data be used? TRUE for simulated data
 simulation = FALSE
@@ -137,6 +137,8 @@ number_simulations = 2
 # FALSE: old results are being loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
 execution_of_VaR_ES_forecasting = TRUE
 
+# Execution of VaR and ES Backtests
+execute_Backtest = TRUE
 
 #################################################################################
 ####           General model specification set-up                            ####
