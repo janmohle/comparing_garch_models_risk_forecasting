@@ -25,7 +25,7 @@ price_return_plots_func <- function(index){
     geom_line(na.rm = TRUE) +
     labs(title = paste0(index)) +
     theme(plot.title = element_text(hjust = 0.5))
-
+  
   return(index.price.return.plots)
 }
 
@@ -172,8 +172,8 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 
   pacf_values <- data.frame(lag = pacf_values$lag[1:20],
                             pacf = pacf_values$acf[1:20])
   results$pacf_squared <- ggplot(pacf_values,
-                         aes(x = lag,
-                             y = pacf)) +
+                                 aes(x = lag,
+                                     y = pacf)) +
     geom_bar(stat = 'identity') +
     geom_hline(yintercept = c(- significance_threshold, significance_threshold),
                linetype = "dashed",
@@ -219,9 +219,7 @@ predict_VaR_ES_1_ahead <- function(data,
   
   # Test if data is zoo object and stop function if not
   if(!is.zoo(data)){
-    data_class <- class(data)
-    error_message <- paste0('Input is ',data_class, ' but needs to be zoo object!')
-    stop(error_message)
+    stop(paste0('Input is ', class(data), ' but needs to be zoo object!'))
   }
   
   # Global list to store all quantities which are not in output of function but will later be needed
@@ -240,9 +238,7 @@ predict_VaR_ES_1_ahead <- function(data,
                                           mu = vector(),
                                           sigma = vector(),
                                           q_tolerance_lvl = vector(),
-                                          integrated_value = vector(),
-                                          grad_mu = vector(),
-                                          grad_sigma = vector())
+                                          integrated_value = vector())
   }
   
   # Store index of last obs
@@ -257,13 +253,8 @@ predict_VaR_ES_1_ahead <- function(data,
     # Storing NAs in other.quantities in cases one part of the function fails
     other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- NA
     other.quantities[[index_name]][[speci_dist]][['coef_est']][[as.character(index_last_obs)]] <<- NA
-    other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- NA
-    other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- NA
     
     
-    if(dist_spec == 'empirical'){
-      other.quantities[[index_name]][[speci_dist]][['empirical_dist']][[as.character(index_last_obs)]] <<- NA
-    }
     
     VaR <- zoo(NA, index_last_obs)
     ES <- zoo(NA, index_last_obs)
@@ -283,25 +274,23 @@ predict_VaR_ES_1_ahead <- function(data,
     
     # Print date which can't be calculated
     date <- index(VaR_and_ES$VaR)
-    message <- paste0('Preceeding date of date where VaR and ES cannot be calculated: ', date, '\n\n')
-    cat(message)
+    cat(paste0('Preceeding date of date where VaR and ES cannot be calculated: ', date, '\n\n'))
     
     # Return VaR and ES
     return(VaR_and_ES)
   }
-
+  
   # If no coefficient from previous run existent, an empty list is assigned (happens in initial run of rolling window and if fitting of previous run of same model failed)
   if(!exists('coef_prev_fit')){
     coef_prev_fit <<- list()
   }
-
+  
   # Variable to control that every 100th window shift and if optimization of previous run of same model failed, the global optimizer in combination with the local optimizer is used. In other cases the hybrid one is used and only in cases where this fails, the global local combination is used
   if(!exists('num_window_shift')){
     num_window_shift <<- 0
   } else {
     num_window_shift <<- num_window_shift + 1
   }
-
   mod_num_window_shift <- num_window_shift %% 100
   
   
@@ -342,11 +331,10 @@ predict_VaR_ES_1_ahead <- function(data,
     
     
   } else {
-    
     # Ensure that fit is NA if hybrid solver was not supposed to be run -> condition for next solver
     fit <- NA
   }
- 
+  
   if(suppressWarnings(is.na(fit)) | mod_num_window_shift == 0){
     
     print('start global')
@@ -444,112 +432,75 @@ predict_VaR_ES_1_ahead <- function(data,
   skew <- ifelse('skew' %in% names(coef_fit), coef_fit['skew'], NA)
   shape <- ifelse('shape' %in% names(coef_fit), coef_fit['shape'], NA)
   
-  # Storing covariance matrices of parameter estimates for every forecast REMOVE IF STATEMENT
+  # Storing covariance matrices of parameter estimates for every forecast
   other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- vcov(fit)
   other.quantities[[index_name]][[speci_dist]][['coef_est']][[as.character(index_last_obs)]] <<- coef_fit
-    
-    
   
   
+  ################NEW#########################
   
   
-  
-  
-    ################NEW#########################
+  if(FALSE){
     
     
-  if(TRUE){
+    # Calculation of gradient of mu
     
-
-  # Calculation of gradient of mu
-  
-  # Function that returns forecasted mu depending on parameters
-  mu_func <- function(par_vec){
-
-    par_list <- as.list(par_vec)
-    
-    spec <- ugarchspec(variance.model = var.spec,
-                       mean.model = mean.spec,
-                       distribution.model = dist.spec,
-                       fixed.pars = par_list)
-    
-    forecast <- ugarchforecast(fitORspec = spec,
-                               data = data,
-                               n.ahead = 1)
-    mu <- as.double(fitted(forecast))
-    
-    return(mu)
-  }
-  
-  # Calculate gradient of mu_func at coef_opt_vec
-  grad_mu <- tryCatch(
-    {
-      grad(func = mu_func,
-           x = coef_fit,
-           method = 'simple',
-           method.args=list(eps=1e-7))
-    }, error = function(e){
-      cat('\nGradient calculation of mu did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message)
+    # Function that returns forecasted mu depending on parameters
+    mu_func <- function(par_vec){
       
-      # Storing last date of data and reason of NA
-      new_entry_NA_fit <- index_last_obs
-      names(new_entry_NA_fit) <- speci_dist
-      NA.information[[index_name]][['grad_mu']] <<- c(NA.information[[index_name]][['grad_mu']], new_entry_NA_fit)
+      par_list <- as.list(par_vec)
       
-      return(NA)
-      }
-  )
-    
-  # Storing gradiant of mu in other.quantities
-  other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- grad_mu
-
-  
-  # Calculation of gradient of sigma
-  # Function that returns forecasted sigma depending on parameters
-  
-  sigma_func <- function(par_vec){
-    
-    par_list <- as.list(par_vec)
-    
-    spec <- ugarchspec(variance.model = var.spec,
-                       mean.model = mean.spec,
-                       distribution.model = dist.spec,
-                       fixed.pars = par_list)
-    
-    forecast <- ugarchforecast(fitORspec = spec,
-                               data = data,
-                               n.ahead = 1)
-    
-    sigma <- as.double(sigma(forecast))
-    
-    return(sigma)
-  }
-
-  # Calculate gradient of sigma_func at coef_opt_vec
-  grad_sigma <- tryCatch(
-    {
-      grad(func = sigma_func,
-           x = coef_fit,
-           method = 'simple',
-           method.args=list(eps=1e-7))
-    }, error = function(e) {
-      cat('\nGradient calculation of sigma did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message)
+      spec <- ugarchspec(variance.model = var.spec,
+                         mean.model = mean.spec,
+                         distribution.model = dist.spec,
+                         fixed.pars = par_list)
       
-      # Storing last date of data and reason of NA
-      new_entry_NA_fit <- index_last_obs
-      names(new_entry_NA_fit) <- speci_dist
-      NA.information[[index_name]][['grad_sigma']] <<- c(NA.information[[index_name]][['grad_sigma']], new_entry_NA_fit)
-      
-      return(NA)
+      forecast <- ugarchforecast(fitORspec = spec,
+                                 data = data,
+                                 n.ahead = 1)
+      mu <- fitted(forecast)
+      return(mu)
     }
-  )
-
-  # Storing gradient of sigma in other.quantities
-  other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- grad_sigma
-  
-  ################NEWEND#########################
+    
+    # Calculate gradiant of mu_func at coef_opt_vec
+    grad_mu <- grad(func = mu_func,
+                    x = coef_fit)
+    
+    # Storing gradiant of mu in other.quantities
+    other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- grad_mu
+    
+    
+    
+    
+    # Calculation of gradient of sigma
+    # Function that returns forecasted sigma depending on parameters
+    
+    sigma_func <- function(par_vec){
+      
+      par_list <- as.list(par_vec)
+      
+      spec <- ugarchspec(variance.model = var.spec,
+                         mean.model = mean.spec,
+                         distribution.model = dist.spec,
+                         fixed.pars = par_list)
+      
+      forecast <- ugarchforecast(fitORspec = spec,
+                                 data = data,
+                                 n.ahead = 1)
+      sigma <- sigma(forecast)
+      
+      return(sigma)
+    }
+    
+    # Calculate gradiant of sigma_func at coef_opt_vec
+    grad_sigma <- grad(func = sigma_func,
+                       x = coef_fit)
+    
+    # Storing gradient of sigma in other.quantities
+    other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- grad_sigma
+    
+    ################NEWEND#########################
   }
-
   
   
   
@@ -557,7 +508,8 @@ predict_VaR_ES_1_ahead <- function(data,
   
   
   
-
+  
+  
   # One-step-ahead forecast
   # Return NA if forecasting doesn't work
   forecast <- tryCatch(
@@ -574,7 +526,7 @@ predict_VaR_ES_1_ahead <- function(data,
   
   # If forecast is NA than NAs get returned for VaR and ES forecast   
   if(suppressWarnings(is.na(forecast))){
-  
+    
     # Storing last date of data and reason of NA
     new_entry_NA_forecast <- index_last_obs
     names(new_entry_NA_forecast) <- speci_dist
@@ -601,7 +553,7 @@ predict_VaR_ES_1_ahead <- function(data,
     # Returning NAs for VaR and ES
     return(return_na_VaR_ES(speci_dist))
   }
-      
+  
   # Writing message if sigma can't be calculated and return NA for VaR and ES
   if(is.nan(sigma)){
     # Console message
@@ -615,10 +567,10 @@ predict_VaR_ES_1_ahead <- function(data,
     # Returning NAs for VaR and ES
     return(return_na_VaR_ES(speci_dist))
   }
-      
+  
   # Using empirical innovations for VaR and ES forecast if dist_spec = empirical
   if(dist_spec == 'empirical'){
- 
+    
     # Standardized residuals
     resid_std <- residuals(fit, standardize = TRUE)
     
@@ -634,7 +586,7 @@ predict_VaR_ES_1_ahead <- function(data,
     
     # Calculating VaR
     VaR <- mu + sigma * q_resid_std
-
+    
     # Extract standardized residuals which exceed q_resid_std
     resid_ES <- resid_std[resid_std <= q_resid_std]
     
@@ -646,11 +598,11 @@ predict_VaR_ES_1_ahead <- function(data,
     
     # Calculating ES
     ES <- mu + sigma * mean_resid_ES
-
+    
     # Change skew and shape with NAs to zoo object and insert empirical as distribution specification
     skew <- zoo(NA, index_last_obs)
     shape <- zoo(NA, index_last_obs)
-    dist.spec <- zoo('empirical', index_last_obs)
+    dist_spec <- zoo(dist_spec, index_last_obs)
     
     # Combine VaR and ES in one list
     VaR_and_ES <- list(VaR = VaR,
@@ -659,12 +611,12 @@ predict_VaR_ES_1_ahead <- function(data,
                        sigma = sigma,
                        skew = skew,
                        shape = shape,
-                       dist = dist.spec)
+                       dist = dist_spec)
     
     #Return results
     return(VaR_and_ES)
   }
-
+  
   # Function returns pth quantile of current distribution
   pth_quantile <- function(p) {
     q <- qdist(distribution = dist.spec,
@@ -681,11 +633,10 @@ predict_VaR_ES_1_ahead <- function(data,
       pth_quantile(p = tolerance_lvl)
     }, error = function(e){
       cat('\nQuantile of tolerance level cannot be calculated (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message, '\nNAs get returned for VaR and ES\n')
-      
       return(NA)
     }
   )
-
+  
   # If quantile of tolerance level is NA than NAs get returned for VaR and ES forecast  
   if(is.na(q_tolerance_lvl)){
     
@@ -714,7 +665,6 @@ predict_VaR_ES_1_ahead <- function(data,
       
     }, error = function(e) {
       cat('\nIntegration did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message', e$message, '\nNA gets returned for ES\n')
-      
       return(NULL)
     }
   )
@@ -727,11 +677,16 @@ predict_VaR_ES_1_ahead <- function(data,
     names(new_entry_NA_integrated_value) <- speci_dist
     NA.information[[index_name]][['integrated_value']] <<- c(NA.information[[index_name]][['integrated_value']], new_entry_NA_integrated_value)
     
+    
+    
+    
     # Storing NAs in other.quantities in cases one part of the function fails
     other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- NA
-    other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- NA
-    other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- NA
-
+    other.quantities[[index_name]][[speci_dist]][['coef_est']][[as.character(index_last_obs)]] <<- NA
+    
+    
+    
+    
     # Creating list with VaR and ES
     ES <- zoo(NA, index_last_obs)
     skew <- zoo(skew, index_last_obs)
@@ -747,13 +702,12 @@ predict_VaR_ES_1_ahead <- function(data,
     
     # Print date which can't be calculated
     date <- index(VaR_and_ES$ES)
-    message <- paste0('Preceeding date of date where ES cannot be calculated: ', date, '\n\n')
-    cat(message)
+    cat(paste0('Preceeding date of date where ES cannot be calculated: ', date, '\n\n'))
     
     # Return VaR and ES
     return(VaR_and_ES)
   }
-      
+  
   # Calculation of ES
   ES <- mu + sigma / tolerance_lvl * integrated_value
   
@@ -813,7 +767,7 @@ VaR_Kupiec_backtest <- function(data,
       p <- pchisq(q = LR,
                   df = 1,
                   lower.tail = FALSE)
-
+      
       # Appending result vectors and add name
       entryname <- substr(col, 14, nchar(col))
       
@@ -897,7 +851,7 @@ VaR_Christofferson1_backtest <- function(data){
       p_all[entryname] <- p
     }
   }
-
+  
   #Return results
   results <- list(LR = LR_all,
                   p = p_all)
@@ -971,7 +925,7 @@ VaR_Christofferson2_backtest <- function(data,
       p_all[entryname] <- p
     }
   }
-
+  
   #Return results
   results <- list(LR = LR_all,
                   p = p_all)
@@ -1010,7 +964,7 @@ ES_uc_backtest <- function(data,
       # Calculating p value
       p <- 2 * pnorm(q = abs(U),
                      lower.tail = FALSE)
-        
+      
       # Appending result vectors and add name
       entryname <- substr(col, 8, nchar(col))
       

@@ -61,7 +61,12 @@ execution_of_VaR_ES_forecasting_function <- function(){
         start <- Sys.time()
         
         # Console message
-        cat('Current iteration: ','Index:',index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist_spec, '\n')
+        if(dist_spec == 'empirical'){
+          cat('Current iteration: ','Index:',index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist_spec, '\n')
+        } else {
+          cat('Current iteration: ','Index:',index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec, '\n')
+        }
+        
         
         # Rolling window VaR and ES forecasting
         rolling.VaR.ES <- rollapply(returns,
@@ -85,7 +90,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
           rm(num_window_shift, envir = .GlobalEnv)
         }
         
-
+        
         # !!!TESTING!!! VaR and ES of last observation (delete in final version)!!!!!!!!!
         #test_VaR_ES <- rolling.VaR.ES
         
@@ -97,7 +102,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
         
         # Creating data frame for easier extraction of values
         rolling.VaR.ES.df <- as.data.frame(rolling.VaR.ES)
-
+        
         # Extracting VaR, ES, mu, sigma, skew, shape, dist values with loop and converting it to zoo object
         for(col in names(rolling.VaR.ES.df)){
           values <- vector()
@@ -110,8 +115,14 @@ execution_of_VaR_ES_forecasting_function <- function(){
           # Creating list with results
           forecasted_col_list_name <- paste0('forecasted.', col, '.list')
           forecasted_col_list <- get(forecasted_col_list_name)
-          entryname <- paste0(col, '_spec', spec_i,'_', dist_spec)
+          
+          if(dist_spec == 'empirical'){
+            entryname <- paste0(col, '_spec', spec_i,'_', dist_spec)
+          } else {
+            entryname <- paste0(col, '_spec', spec_i,'_', dist.spec)
+          }
           forecasted_col_list[[entryname]] <- values_zoo
+          
           assign(forecasted_col_list_name, forecasted_col_list)
         }
         
@@ -130,13 +141,13 @@ execution_of_VaR_ES_forecasting_function <- function(){
     #!!!EXCLUDE?!!!
     # Linear interpolation of NAs 
     #for(col_name in names(forecasted.VaR.list)){
-     # forecasted.VaR.list[[col_name]] <- na.approx(forecasted.VaR.list[[col_name]],
+    # forecasted.VaR.list[[col_name]] <- na.approx(forecasted.VaR.list[[col_name]],
     #                                               na.rm = FALSE)
     #}
     
     #for(col_name in names(forecasted.ES.list)){
-     # forecasted.ES.list[[col_name]] <- na.approx(forecasted.ES.list[[col_name]],
-      #                                            na.rm = FALSE)
+    # forecasted.ES.list[[col_name]] <- na.approx(forecasted.ES.list[[col_name]],
+    #                                            na.rm = FALSE)
     #}
     #!!!!!!!!!
     
@@ -186,7 +197,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
     # Computing cumulative exceedences for ES backtesting (values could vary slightly because of distribution parameter estimation errors due to approximation in numerical optimization!)
     dist.spec.names.vec <- unlist(dist.spec.list)
     var.spec.names.vec <- names(var.spec.list)
-
+    
     # Loop over rows of data
     for(i in 1:nrow(data)){
       
@@ -194,7 +205,13 @@ execution_of_VaR_ES_forecasting_function <- function(){
       for(var in var.spec.names.vec){
         
         # Loop over distribution assumptions
-        for(dist in names(dist.spec.names.vec)){
+        for(dist_name in names(dist.spec.names.vec)){
+          
+          if(dist_name == 'empirical'){
+            dist <- dist_name
+          } else {
+            dist <- dist.spec.names.vec[[dist_name]]
+          }
           
           # Current combination of var and dist
           var_dist <- paste0(var, '_', dist)

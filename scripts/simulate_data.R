@@ -11,7 +11,7 @@ for(i in 1:number_simulations){
                           mean.model = list(armaOrder = c(0,0)),
                           distribution.model = 'sstd',
                           fixed.pars = list(mu = 0.00025,
-                                            omega = 0.05,
+                                            omega = 0.00005,
                                             alpha1 = 0.1,
                                             beta1 = 0.85,
                                             skew = -1,
@@ -49,7 +49,7 @@ for(i in 1:number_simulations){
             row.names = FALSE)
   
   # Delete simulted data set from R session
-  rm(garchspec, garchsimlation, garchsimlation_df, file_name)
+  rm(garchspec, garchsimlation, garchsimlation_df, file_name, garchsimlation_df_first_row)
 }
 
 rm(i)

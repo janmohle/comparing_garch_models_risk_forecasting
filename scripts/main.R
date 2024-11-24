@@ -2,12 +2,30 @@
 ####           TO-DO-LIST                                                    ####
 #################################################################################
 
+# 1. mechanism that if empirical and error somewhere that VaR cannot be calculated -> NA in empirical distribution in other.quantities done
+
+
 #DEFINITLY:
-# Investigate error if Execution is TRUE for real data
-# Maybe add second optimization if first fails
-# Set correct solver control parameters (investigate how solver works)
+# 1. consider to change order of backtests (function itself shouldn't go through data -> this should be done outside of function -> function only returns result for one test)
+# 2. implement corrected versions of test (with parameter 'corrected' in same function)
+
+# Set correct solver control parameters (investigate how solver works)    done
+# Maybe add second optimization if first fails     done
+# take previous coefficiants as starting parameter for optimisation    done
+# rerun every 100th optimization.   done
+# think when to use global local combination!!   done
+
+# create speci_dist in the beginning for whole function done
+
+# continue insert NA into other.quantities done
+# handle errors in gradient calculation -> improve paramters of grad(): consider first richardson and if this fails then simple
+
+# implement corrected version of ES backtests (handle potential errors in gradient calculation first and think about how to deal with NA in other.quantities) (special case is empirical distribution)
+# add parameter that decides which backtests to make
 
 # Check if backtest for empirical violations makes sense
+
+# (Investigate error if Execution is TRUE for real data)
 
 # NOTES:
 # old2 are good data sets
@@ -27,7 +45,7 @@
 # Test multiple simulations and check if results are logical
 # Test different parameters of program
 
-#CHALLANGES:
+# CHALLANGES:
 # Implementing ES backtest which is robust against estimation uncertainty 
 
 # IDEAS:
@@ -37,10 +55,12 @@
 
 
 # Recently changed:
-# width -> window_width
-# Exclude and investigate parameter data from return_na_VaR_ES
-# implement empirical distribution
-# change omega in simulation from 0.00005 to 0.05
+
+
+# NOTE:
+# using combination of first global and then local optimiser leads to more accurat results but increases processing time a lot
+# maybe taking previous parameter estimates as staring parameter reduces time a lot
+# taking hybrid solver for all dist and only use other optimizer if hybrid fails
 
 #################################################################################
 ####           General set-up                                                ####
@@ -58,6 +78,7 @@ library(tidyverse)
 library(zoo)
 library(rugarch)
 library(FinTS)
+library(numDeriv)
 
 # Function definition
 source('scripts/functions.R')
@@ -90,30 +111,30 @@ tolerance_lvl = 0.05
 ################################################################################
 
 # Number of forecasts
-number_forecasts = 200
+number_forecasts = 50
 
 # Input data - has to be higher than parameter window_width (comment out if not needed) (can be set directly or using parameter number_forecasts)
 data_include = 1:(window_width+1+number_forecasts)
 
 # Indices (comment out if not needed)
 # Be careful when simulation = TRUE because indices are also subset then
-#index_include = 2
+index_include = c(3,4)
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(1,2)
+varspec_include = c(1,2,3)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1,5,11)
+dist_include = c(1, 8, 11)
 
 # Should real data or simulated data be used? TRUE for simulated data
 simulation = FALSE
 
 # Number of simulations (specifiy if simulation = TRUE)
-number_simulations = 1
+number_simulations = 2
 
 # Execution of VaR and ES forecast
 # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
-# FALSE: old results are being loaded from csv files in output
+# FALSE: old results are being loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
 execution_of_VaR_ES_forecasting = TRUE
 
 
@@ -159,17 +180,17 @@ mean.spec <- list(armaOrder = c(ar,ma),
 # show plot of mean as proof??
 
 # List of all distribution assumptions
-dist.spec.list <-  list(distr1 = 'norm',
-                        distr2 = 'std',
-                        distr3 = 'ged',
-                        distr4 = 'snorm',
-                        distr5 = 'sstd',
-                        distr6 = 'sged',
-                        distr7 = 'ghyp',
-                        distr8 = 'nig', # nig leads to problems (a lot of NaN in spec 3 for GOLD -> Should I exclude it)
-                        distr9 = 'ghst',  # optimazation takes often too long with this distribution -> Sould I exclude it?
-                        distr10 = 'jsu', # jsu leads to some problems (NaN in sigma in Spec 3 for GOLD -> Should I include it or not?)
-                        empirical = 'norm') # Normal distribution for QML estimation -> asymptotically consistent (USE IN TEXT AS JUSTIFICATION AND SEARCH FOR REFERENCE)
+dist.spec.list <-  list(norm = 'norm',      #1
+                        std = 'std',        #2
+                        ged = 'ged',        #3
+                        snorm = 'snorm',    #4
+                        sstd = 'sstd',      #5
+                        sged = 'sged',      #6
+                        ghyp = 'ghyp',      #7   # nests sstd and nig
+                        nig = 'nig',        #8   # nig leads to problems (a lot of NaN in spec 3 for GOLD -> Should I exclude it)
+                        ghst = 'ghst',      #9   # optimazation takes often too long with this distribution -> Sould I exclude it? --- df and skewness parameter interact in complicated way
+                        jsu = 'jsu',        #10  # jsu leads to some problems (NaN in sigma in Spec 3 for GOLD -> Should I include it or not?)
+                        empirical = 'norm') #11  # Normal distribution for QML estimation -> asymptotically consistent (USE IN TEXT AS JUSTIFICATION AND SEARCH FOR REFERENCE)
 
 
 #################################################################################
@@ -263,10 +284,10 @@ if(plotting_1){
   }
 }
 
-plotting_2 = FALSE
+plotting_2 = F
 if(plotting_2){
 # Nice plot of VaR and ES for WIG spec2 sged
-ggplot(data =  sim1[-1:-(window_width + 2),],
+ggplot(data =  BTC[-1:-(window_width + 2),],
        mapping = aes(x = Date,
                      y = Return)) +
   geom_point(aes(colour = as.factor(Exceeded_VaR_spec1_norm))) +
