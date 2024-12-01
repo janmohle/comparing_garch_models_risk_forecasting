@@ -9,6 +9,9 @@
 # 1. consider to change order of backtests (function itself shouldn't go through data -> this should be done outside of function -> function only returns result for one test)
 # 2. implement corrected versions of test (with parameter 'corrected' in same function)
 
+# Reconcider way how to test model with historical distribution
+# In the gradient calculation of mu and sigma, should it really be the forecasted value or the fitted value??? -> probably yes
+
 # Set correct solver control parameters (investigate how solver works)    done
 # Maybe add second optimization if first fails     done
 # take previous coefficiants as starting parameter for optimisation    done
@@ -61,6 +64,7 @@
 # using combination of first global and then local optimiser leads to more accurat results but increases processing time a lot
 # maybe taking previous parameter estimates as staring parameter reduces time a lot
 # taking hybrid solver for all dist and only use other optimizer if hybrid fails
+# First return in input data set has to be NA that the program works correctly
 
 #################################################################################
 ####           General set-up                                                ####
@@ -111,26 +115,26 @@ tolerance_lvl = 0.05
 ################################################################################
 
 # Number of forecasts
-number_forecasts = 50
+number_forecasts = 1250
 
 # Input data - has to be higher than parameter window_width (comment out if not needed) (can be set directly or using parameter number_forecasts)
 data_include = 1:(window_width+1+number_forecasts)
 
 # Indices (comment out if not needed)
 # Be careful when simulation = TRUE because indices are also subset then
-index_include = c(3,4)
+#index_include = c(3,4)
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(1,2,3)
+varspec_include = c(1)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1, 5, 11)
+dist_include = c(1)
 
 # Should real data or simulated data be used? TRUE for simulated data
-simulation = FALSE
+simulation = TRUE
 
 # Number of simulations (specifiy if simulation = TRUE)
-number_simulations = 2
+number_simulations = 100
 
 # Execution of VaR and ES forecast
 # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
@@ -289,7 +293,7 @@ if(plotting_1){
 plotting_2 = F
 if(plotting_2){
 # Nice plot of VaR and ES for WIG spec2 sged
-ggplot(data =  BTC[-1:-(window_width + 2),],
+ggplot(data =  sim5[-1:-(window_width + 2),],
        mapping = aes(x = Date,
                      y = Return)) +
   geom_point(aes(colour = as.factor(Exceeded_VaR_spec1_norm))) +

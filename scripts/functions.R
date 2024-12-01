@@ -319,7 +319,7 @@ predict_VaR_ES_1_ahead <- function(data,
     # solver.control specified for gosolnp and nloptr which are used if previous optimizer have failed
     fit <- tryCatch(
       {
-        print('hybrid start')
+        #print('hybrid start')
         
         ugarchfit(spec = spec,
                   data = data,
@@ -338,7 +338,7 @@ predict_VaR_ES_1_ahead <- function(data,
     
     
     
-    print('hybrid end')
+    #print('hybrid end')
     
     #print(coef(fit))
     
@@ -351,7 +351,7 @@ predict_VaR_ES_1_ahead <- function(data,
  
   if(suppressWarnings(is.na(fit)) | mod_num_window_shift == 0){
     
-    print('start global')
+    #print('start global')
     
     
     
@@ -379,7 +379,7 @@ predict_VaR_ES_1_ahead <- function(data,
       
       
       #print(coef(global_fit))
-      print('start local')
+      #print('start local')
       
       
       local_fine_tuned_fit <- ugarchfit(spec = spec_with_global_fit,
@@ -390,7 +390,7 @@ predict_VaR_ES_1_ahead <- function(data,
                                                               solver = 10))
       
       
-      print('end both')
+      #print('end both')
       #print(coef(local_fine_tuned_fit))
       
       
@@ -460,7 +460,6 @@ predict_VaR_ES_1_ahead <- function(data,
     ################NEW#########################
     
     
-  if(TRUE){
     
 
   # Calculation of gradient of mu
@@ -550,7 +549,7 @@ predict_VaR_ES_1_ahead <- function(data,
   other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- grad_sigma
   
   ################NEWEND#########################
-  }
+
 
   
   
@@ -948,17 +947,29 @@ VaR_Christofferson2_backtest <- function(exceedences,
 
 
 ############################################################################################
-### Unconditional coverage test ES without adjustment for parameter estimation risk      ###
+### Unconditional coverage test ES                                                       ###
 ############################################################################################
 ES_uc_backtest <- function(CumVio,
                            speci_dist,
-                           tolerance_lvl){
+                           tolerance_lvl,
+                           robust,
+                           index,
+                           cov_matrices,
+                           window_width,
+                           grad_mu,
+                           grad_sigma,
+                           r,
+                           mu,
+                           sigma,
+                           skew,
+                           shape,
+                           dist){
   
-  # Count number of entries which are not NAs
-  # n_entries <- sum(CumVio[!is.na(CumVio)])
+  # Vector with positions which are not NA in CumVio
+  not_na_Cum_Vio <- !is.na(CumVio)
   
   # Using only non-missing entries
-  H_hut <- na.omit(CumVio)
+  H_hut <- CumVio[not_na_Cum_Vio]
   
   # Mean of H_huts
   H_mean <- mean(H_hut)
@@ -966,15 +977,99 @@ ES_uc_backtest <- function(CumVio,
   # Number of non-missing entries
   n <- length(H_hut)
   
+  # If robust = TRUE, robust UC Backtest is calculated -> U ~ N(0, sigma) -> parameter estimation effect in test statistic included
+  # If robust = FALSE: Assumption U ~ N(0,1)
+  if(robust){
+    
+    # Calculating mean of covariance matrices W
+    n_cov <- 0
+    for(i in 1:(length(cov_matrices) - 1)){
+      if(is.matrix(cov_matrices[[i]])){
+        if(n_cov == 0){
+          sum_cov <- cov_matrices[[i]]
+          n_cov <- 1
+        } else {
+          sum_cov <- sum_cov + cov_matrices[[i]]
+          n_cov <- n_cov + 1
+        }
+      }
+    }
+    W <- sum_cov / n_cov
+    
+    # Test that number of covariance matrices is correct
+    if(n_cov != n){
+      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its covariance matrices\n\n'))
+    }
+    
+    # Test that number of gradients without NAs is correct
+    n_grad <- 0
+    for(i in 1:(length(grad_sigma) - 1)){
+      if(!(NA %in% grad_sigma[[i]])){
+        n_grad <- n_grad + 1
+      }
+    }
+    
+    if(n_grad != n){
+      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its gradients\n\n'))
+    }
+    
+    # Extracting values necessary to calculate R
+    r <- r[not_na_Cum_Vio]
+    mu <- mu[not_na_Cum_Vio]
+    eps <- r - mu
+    sigma <- sigma[not_na_Cum_Vio]
+    skew <- skew[not_na_Cum_Vio]
+    shape <- shape[not_na_Cum_Vio]
+    dist <- dist[not_na_Cum_Vio]
+    
+    # In case of empirical distribution, replace the empirical distribution with normal distribution to make robust test feasible (THINK ABOUT THIS, IF IT MAKES SENSE!!!!!!!!!)
+    dist <- ifelse(dist == 'empirical', 'norm', dist)
+    
+    # Calculation of R_ES_hut
+    for(i in 1:n){
+      G_q_eps <- qdist(distribution = dist[i],
+                       p = tolerance_lvl,
+                       mu = 0,
+                       sigma = sigma[i],
+                       skew = skew[i],
+                       shape = shape[i])
+      if(eps[i] <= G_q_eps){
+        g_d_eps <- ddist(distribution = dist[i],
+                         y = eps[i],
+                         mu = 0,
+                         sigma = sigma[i],
+                         skew = skew[i],
+                         shape = shape[i])
+        R_i <- g_d_eps * ((grad_mu[[i]] + (eps[i] * grad_sigma[[i]])) / sigma[i])
+        
+        if(!exists('R')){
+          R <- R_i
+        } else {
+          R <- R + R_i
+        }
+      }
+    }
+    
+    R_ES_hut <- R / (tolerance_lvl * n)
+    
+    rm(R)
+    
+    # Calculation of variance correction factor
+    cor_fac <- (n / window_width) * (t(R_ES_hut) %*% W %*% R_ES_hut)
+    cor_fac <- as.double(cor_fac)
+  } else {
+    # Correction factor is zero if assimption U ~ N(0,1)
+    cor_fac <- 0
+  }
+  
   # Calculating test statistic and assign name speci_dist
-  U <- sqrt(n) * (H_mean - tolerance_lvl / 2) / sqrt(tolerance_lvl * (1 / 3 - tolerance_lvl / 4))
+  U <- (sqrt(n) * (H_mean - (tolerance_lvl / 2))) / sqrt((tolerance_lvl * ((1 / 3) - (tolerance_lvl / 4))) + cor_fac)
   names(U) <- speci_dist
   
   # Calculating p value and assign name speci_dist
   p <- 2 * pnorm(q = abs(U),
                  lower.tail = FALSE)
   names(p) <- speci_dist
-  
   
   # Return results
   result <- list(U = U,
@@ -985,44 +1080,159 @@ ES_uc_backtest <- function(CumVio,
 
 
 ############################################################################################
-### Conditional coverage test ES without adjustment for parameter estimation risk        ###
+### Conditional coverage test ES                                                         ###
 ############################################################################################
 ES_cc_backtest <- function(CumVio,
                            speci_dist,
                            tolerance_lvl,
-                           lags){
+                           lags,
+                           robust,
+                           index,
+                           cov_matrices,
+                           window_width,
+                           grad_mu,
+                           grad_sigma,
+                           r,
+                           mu,
+                           sigma,
+                           skew,
+                           shape,
+                           dist){
   
-  # Count number of entries which are not NAs
-  # n_entries <- sum(CumVio[!is.na(CumVio)])
+  # Vector with positions which are not NA in CumVio
+  not_na_Cum_Vio <- !is.na(CumVio)
   
   # Using only non-missing entries
-  H_hut <- na.omit(CumVio)
+  H_hut <- CumVio[not_na_Cum_Vio]
   
   # Number of entries
   n <- length(H_hut)
   
   # Variance of H_huts
-  gamma_n0 <- 1 / n * sum((H_hut - tolerance_lvl / 2) * (H_hut - tolerance_lvl / 2))
+  gamma_n0 <- 1 / n * sum((H_hut - (tolerance_lvl / 2)) * (H_hut - (tolerance_lvl / 2)))
   
   # Vector with covariance between H_hut and j-laged H_hut
   gamma_nj <- vector(length = lags)
   
   for(j in 1:lags){
-    gamma_nj[j] <- 1 / (n - j) * sum((H_hut[(j+1):n] - tolerance_lvl / 2) * (H_hut[1:(n-j)] - tolerance_lvl / 2))
+    gamma_nj[j] <- 1 / (n - j) * sum((H_hut[(j+1):n] - (tolerance_lvl / 2)) * (H_hut[1:(n-j)] - (tolerance_lvl / 2)))
   }
   
   # Vector with correlations between H_hut and j-laged H_hut
-  rho_nj <- gamma_nj / gamma_n0
+  rho_nj <- as.vector(gamma_nj / gamma_n0)
+  
+  
+  # Robust conditional coverage test
+  
+  # If robust = TRUE, robust CC Backtest is calculated -> parameter estimation effect in test statistic included -> corrected C ~ X^2(lags)
+  # If robust = FALSE: Assumption uncorrected C ~ X^2(lags)
+  if(robust){
+    
+    # Calculating mean of covariance matrices W
+    n_cov <- 0
+    for(i in 1:(length(cov_matrices) - 1)){
+      if(is.matrix(cov_matrices[[i]])){
+        if(n_cov == 0){
+          sum_cov <- cov_matrices[[i]]
+          n_cov <- 1
+        } else {
+          sum_cov <- sum_cov + cov_matrices[[i]]
+          n_cov <- n_cov + 1
+        }
+      }
+    }
+    W <- sum_cov / n_cov
+    
+    # Test that number of covariance matrices is correct
+    if(n_cov != n){
+      cat(paste0('\nES CC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its covariance matrices\n\n'))
+    }
+    
+    # Test that number of gradients without NAs is correct
+    n_grad <- 0
+    for(i in 1:(length(grad_sigma) - 1)){
+      if(!(NA %in% grad_sigma[[i]])){
+        n_grad <- n_grad + 1
+      }
+    }
+    
+    if(n_grad != n){
+      cat(paste0('\nES CC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its gradients\n\n'))
+    }
+    
+    # Extracting values necessary to calculate R
+    r <- r[not_na_Cum_Vio]
+    mu <- mu[not_na_Cum_Vio]
+    eps <- r - mu
+    sigma <- sigma[not_na_Cum_Vio]
+    skew <- skew[not_na_Cum_Vio]
+    shape <- shape[not_na_Cum_Vio]
+    dist <- dist[not_na_Cum_Vio]
+    
+    # In case of empirical distribution, replace the empirical distribution with normal distribution to make robust test feasible (THINK ABOUT THIS, IF IT MAKES SENSE!!!!!!!!!)
+    dist <- ifelse(dist == 'empirical', 'norm', dist)
+    
+    # List to store all R_huts
+    R_j_hut <- list()
+    
+    # Loop of different lags j
+    for(j in 1:lags){
+      
+      # Calculation of R_j_hut
+      for(i in (1+j):n){
+        G_q_eps <- qdist(distribution = dist[i],
+                         p = tolerance_lvl,
+                         mu = 0,
+                         sigma = sigma[i],
+                         skew = skew[i],
+                         shape = shape[i])
+        if(eps[i] <= G_q_eps){
+          g_d_eps <- ddist(distribution = dist[i],
+                           y = eps[i],
+                           mu = 0,
+                           sigma = sigma[i],
+                           skew = skew[i],
+                           shape = shape[i])
+          R_j_i <- (H_hut[(i-j)] - (tolerance_lvl / 2)) * g_d_eps * ((grad_mu[[i]] + (eps[i] * grad_sigma[[i]])) / sigma[i])
+          
+          if(!exists('R_j')){
+            R_j <- R_j_i
+          } else {
+            R_j <- R_j + R_j_i
+          }
+        }
+      }
+      
+      R_j_hut[[j]] <- as.vector((1 / (tolerance_lvl * ((1 / 3) - (tolerance_lvl / 4)))) * (1 / (n - j)) * R_j)
+      
+      rm(R_j)
+    }
+    
+    # Creating empty sigma_hut matrix
+    sigma_hut_mat <- matrix(data = NA, ncol = lags, nrow = lags)
+    
+    # Calculating every element of sigma_hut matrix
+    for(i in 1:lags){
+      for(j in 1:lags){
+        sigma_hut_mat[i,j] <- ifelse(i == j, 1, 0) + ((n / window_width) * (t(R_j_hut[[i]]) %*% W %*% R_j_hut[[j]]))
+      }
+    }
+    
+    # Inverting sigma_hut_mat
+    sigma_hut_mat_inv <- solve(sigma_hut_mat)
+    
+  } else {
+    # Sigma_hut matrix is identity matrix if no parameter estimation risk correction is applyed to variance of test statistic C
+    sigma_hut_mat_inv <- diag(x = 1, nrow = lags)
+  }
   
   # Test statistic for Box-Pierce-Test and assign name speci_dist
-  C <- n * sum(rho_nj ^ 2)
+  C <- n * t(rho_nj) %*% sigma_hut_mat_inv %*% rho_nj
   names(C) <- speci_dist
   
   # p-value of test statistic and assign name speci_dist
-  df <- length(rho_nj)
-  
   p <- pchisq(q = C,
-              df = df,
+              df = length(rho_nj),
               lower.tail = FALSE)
   names(C) <- speci_dist
   

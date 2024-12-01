@@ -206,7 +206,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
           skew_var_dist <- paste0('skew_', var_dist)
           shape_var_dist <- paste0('shape_', var_dist)
           
-          # Test that data is not NA, if so, assign NAs to u and CumVio
+          # Test that data is not NA. If data is NA, than assign NAs to u and CumVio
           Exceeded_VaR_var_dist <- paste0('Exceeded_VaR_', var_dist)
           
           if(is.na(data[[Exceeded_VaR_var_dist]][i])){
@@ -243,15 +243,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
             }
             
             # Calculate cumulative violations
-            if(u <= tolerance_lvl){
-              
-              CumVio <- 1 / tolerance_lvl * (tolerance_lvl - u)
-              
-            } else {
-              
-              CumVio <- 0
-              
-            }
+            CumVio <- (1 / tolerance_lvl) * (tolerance_lvl - u) * ifelse(u <= tolerance_lvl, 1, 0)
           }
           
           # Assign u and CumVio to current column with correct name

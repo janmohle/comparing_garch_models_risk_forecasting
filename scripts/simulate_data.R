@@ -9,19 +9,17 @@ for(i in 1:number_simulations){
   garchspec <- ugarchspec(variance.model = list(model = 'sGARCH',
                                                 garchOrder = c(1,1)),
                           mean.model = list(armaOrder = c(0,0)),
-                          distribution.model = 'sstd',
+                          distribution.model = 'norm',
                           fixed.pars = list(mu = 0.00025,
                                             omega = 0.00005,
                                             alpha1 = 0.1,
-                                            beta1 = 0.85,
-                                            skew = -1,
-                                            shape = 15)
+                                            beta1 = 0.85)
   )
   
   # Simulation
-  garchsimlation <- ugarchpath(garchspec,
-                               n.sim = 1750,
-                               n.start = 500,
+  garchsimlation <- ugarchpath(spec = garchspec,
+                               n.sim = window_width+number_forecasts+2,
+                               n.start = window_width+1,
                                m.sim = 1)
   
   # Storing values in data frame and adding dates
