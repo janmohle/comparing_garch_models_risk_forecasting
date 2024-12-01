@@ -5,3 +5,9 @@
 old/old.R
 old/old_functions.R
 scripts/test.R
+output/
+simulated_data/
+simulated_output/
+simulated_data_100/
+simulated_outputa_100/
+
