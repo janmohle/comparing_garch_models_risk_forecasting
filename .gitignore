@@ -9,5 +9,7 @@ output/
 simulated_data/
 simulated_output/
 simulated_data_100/
-simulated_outputa_100/
+simulated_output_100/
+scripts/not_tracked/
+
 
