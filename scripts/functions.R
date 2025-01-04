@@ -14,17 +14,23 @@ price_return_plots_func <- function(index){
   index.price.return.plots[['Price']] <- ggplot(data,
                                                 aes(x = Date,
                                                     y = Price)) +
-    geom_line(na.rm = TRUE) +
-    labs(title = paste0(index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+    geom_line(na.rm = TRUE, size = 0.5) +
+    labs(title = paste0('Price ',index)) +
+    theme(plot.title = element_text(hjust = 0.1),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
   
   # Return plot
   index.price.return.plots[['Return']] <- ggplot(data,
                                                  aes(x = Date,
                                                      y = Return)) +
-    geom_line(na.rm = TRUE) +
-    labs(title = paste0(index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+    geom_line(na.rm = TRUE, size = 0.5) +
+    labs(title = paste0('Daily Log-Returns ',index)) +
+    theme(plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
 
   return(index.price.return.plots)
 }
@@ -34,7 +40,7 @@ price_return_plots_func <- function(index){
 ### Returns most important statistics for financial time series data ####
 #########################################################################
 
-ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 12, nu = 5) {
+ts_main_statistics <- function(index, lags_Ljung_Box_test, lags_ArchTest, nu) {
   # Required libraries
   library(FinTS)
   library(moments)
@@ -84,17 +90,58 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 
   density_data <- data.frame(x = data_standerdized)
   results$density <- ggplot(density_data,
                             aes(x = x)) +
-    geom_density() +
+    geom_density(aes(color = "Standardized Returns")) +
     geom_function(fun = function(x) ddist(y = x),
-                  aes(color = "Standard Normal")) +
+                  aes(color = "Normal Distribution")) +
     geom_function(fun = function(x) ddist(y = x,
                                           distribution = 'std',
                                           shape = nu),
-                  aes(color = "t-Distribution")) +
-    scale_color_manual(values = c("darkgreen", "purple")) +
+                  aes(color = paste0('t-Distribution with ', nu, ' df'))) +
+    scale_color_manual(
+      values = c("black", "darkgreen", "purple"),
+      breaks = c("Standardized Returns", "Normal Distribution", paste0('t-Distribution with ', nu, ' df'))
+    )  +
     labs(color = "Distributions",
-         title = paste0('Density Comparison: ', index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+         linetype = "Distributions",
+         title = paste0('Density Comparison: ', index),
+         x = NULL,
+         y = NULL) +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = c(0.1, 0.5),
+          legend.justification = "left",
+          panel.background = element_rect(fill = "white"),
+          legend.background = element_rect(fill = "white", color = NA),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
+  
+  # Lower tail compared with normal and t distribution
+  results$lower_tail <- ggplot(density_data,
+                               aes(x = x)) +
+    geom_density(aes(color = "Standardized Returns")) +
+    geom_function(fun = function(x) ddist(y = x),
+                  aes(color = "Normal Distribution")) +
+    geom_function(fun = function(x) ddist(y = x,
+                                          distribution = 'std',
+                                          shape = nu),
+                  aes(color = paste0('t-Distribution with ', nu, ' df'))) +
+    scale_color_manual(
+      values = c("black", "darkgreen", "purple"),
+      breaks = c("Standardized Returns", "Normal Distribution", paste0('t-Distribution with ', nu, ' df'))
+    )  +
+    labs(color = "Distributions",
+         linetype = "Distributions",
+         title = paste0('Lower Tail Comparison: ', index),
+         x = NULL,
+         y = NULL) +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position = c(0.1, 0.5),
+          legend.justification = "left",
+          panel.background = element_rect(fill = "white"),
+          legend.background = element_rect(fill = "white", color = NA),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black")) +
+    coord_cartesian(xlim = c(-4.5, -1),
+                    ylim = c(0, 0.3))
   
   # QQ Plot (normal)
   quantiles <- data.frame(q_emp = data_standerdized,
@@ -112,28 +159,35 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 
     geom_function(fun = function(x) x,
                   col = 'red') +
     labs(title = paste0('QQ Plot: ', index),
-         x = 'Theoretical Quantile',
+         x = 'Theoretical Quantile Normal Distribution',
          y = 'Empirical Quantile') +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
   
   # Significance threshold for ACFs and PACFs
   significance_threshold <- qnorm(0.975) / sqrt(length(data))
   
   # ACF for data
   acf_values <- acf(data, plot = F)
-  acf_values <- data.frame(lag = acf_values$lag[2:20],
-                           acf = acf_values$acf[2:20])
+  acff <<- acf_values
+  acf_values <- data.frame(lag = acf_values$lag[2:21],
+                           acf = acf_values$acf[2:21])
   results$acf <- ggplot(acf_values,
                         aes(x = lag,
                             y = acf)) +
     geom_bar(stat = 'identity') +
-    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+    geom_hline(yintercept = c(-significance_threshold, significance_threshold),
                linetype = "dashed",
                color = "red") +
-    labs(x = "Lag",
+    labs(x = "Lags",
          y = "ACF",
          title = paste0("ACF Plot: ", index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
   
   # PACF for data
   pacf_values <- pacf(data, plot = F)
@@ -143,13 +197,16 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 
                          aes(x = lag,
                              y = pacf)) +
     geom_bar(stat = 'identity') +
-    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+    geom_hline(yintercept = c(-significance_threshold, significance_threshold),
                linetype = "dashed",
                color = "red") +
-    labs(x = "Lag",
+    labs(x = "Lags",
          y = "PACF",
          title = paste0("PACF Plot: ", index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
   
   # ACF for squared data
   acf_values <- acf(data^2, plot = F)
@@ -159,13 +216,16 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 
                                 aes(x = lag,
                                     y = acf)) +
     geom_bar(stat = 'identity') +
-    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+    geom_hline(yintercept = c(-significance_threshold, significance_threshold),
                linetype = "dashed",
                color = "red") +
-    labs(x = "Lag",
+    labs(x = "Lags",
          y = "ACF",
          title = paste0("ACF Plot Squared: ", index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
   
   # PACF for squared data
   pacf_values <- pacf(data^2, plot = F)
@@ -175,31 +235,37 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test = 15, lags_ArchTest = 
                          aes(x = lag,
                              y = pacf)) +
     geom_bar(stat = 'identity') +
-    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+    geom_hline(yintercept = c(-significance_threshold, significance_threshold),
                linetype = "dashed",
                color = "red") +
-    labs(x = "Lag",
+    labs(x = "Lags",
          y = "PACF",
          title = paste0("PACF Plot Squared: ", index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
   
   # CCF for data and squared data
   ccf_values <- ccf(data^2, data, plot = F)
-  lower <- ceiling(length(ccf_values$lag) / 2) 
-  upper <- lower + 20
+  lower <- ceiling(length(ccf_values$lag) / 2) + 1
+  upper <- lower + 19
   ccf_values <- data.frame(lag = ccf_values$lag[lower:upper],
                            ccf = ccf_values$acf[lower:upper])
   results$ccf <- ggplot(ccf_values,
                         aes(x = lag,
                             y = ccf)) +
     geom_bar(stat = 'identity') +
-    geom_hline(yintercept = c(- significance_threshold, significance_threshold),
+    geom_hline(yintercept = c(-significance_threshold, significance_threshold),
                linetype = "dashed",
                color = "red") +
-    labs(x = "Lag",
+    labs(x = "Lags",
          y = "CCF",
          title = paste0("CCF Plot Leverage Effect: ", index)) +
-    theme(plot.title = element_text(hjust = 0.5))
+    theme(plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"),
+          panel.grid = element_blank(),
+          axis.line = element_line(color = "black"))
   
   return(results)
 }
@@ -259,7 +325,6 @@ predict_VaR_ES_1_ahead <- function(data,
     other.quantities[[index_name]][[speci_dist]][['coef_est']][[as.character(index_last_obs)]] <<- NA
     other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- NA
     other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- NA
-    
     
     if(dist_spec == 'empirical'){
       other.quantities[[index_name]][[speci_dist]][['empirical_dist']][[as.character(index_last_obs)]] <<- NA
@@ -449,21 +514,9 @@ predict_VaR_ES_1_ahead <- function(data,
   # Storing covariance matrices of parameter estimates for every forecast REMOVE IF STATEMENT
   other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- vcov(fit)
   other.quantities[[index_name]][[speci_dist]][['coef_est']][[as.character(index_last_obs)]] <<- coef_fit
-    
-    
   
   
-  
-  
-  
-  
-    ################NEW#########################
-    
-    
-    
-
   # Calculation of gradient of mu
-  
   # Function that returns forecasted mu depending on parameters
   mu_func <- function(par_vec){
 
@@ -488,7 +541,7 @@ predict_VaR_ES_1_ahead <- function(data,
       grad(func = mu_func,
            x = coef_fit,
            method = 'simple',
-           method.args=list(eps=1e-7))
+           method.args=list(eps=sqrt(.Machine$double.eps)))
     }, error = function(e){
       cat('\nGradient calculation of mu did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message)
       
@@ -503,7 +556,7 @@ predict_VaR_ES_1_ahead <- function(data,
     
   # Storing gradiant of mu in other.quantities
   other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- grad_mu
-
+  
   
   # Calculation of gradient of sigma
   # Function that returns forecasted sigma depending on parameters
@@ -532,7 +585,7 @@ predict_VaR_ES_1_ahead <- function(data,
       grad(func = sigma_func,
            x = coef_fit,
            method = 'simple',
-           method.args=list(eps=1e-7))
+           method.args=list(eps=sqrt(.Machine$double.eps)))
     }, error = function(e) {
       cat('\nGradient calculation of sigma did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message)
       
@@ -547,18 +600,8 @@ predict_VaR_ES_1_ahead <- function(data,
 
   # Storing gradient of sigma in other.quantities
   other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- grad_sigma
-  
-  ################NEWEND#########################
-
 
   
-  
-  
-  
-  
-  
-  
-
   # One-step-ahead forecast
   # Return NA if forecasting doesn't work
   forecast <- tryCatch(
@@ -785,9 +828,6 @@ VaR_Kupiec_backtest <- function(exceedences,
                                 speci_dist,
                                 tolerance_lvl){
   
-  # Count number of entries which are not NAs
-  # n_entries <- sum(exceedences[!is.na(exceedences)])
-  
   # Using only non-missing entries
   exceedences <- na.omit(exceedences)
   
@@ -829,9 +869,6 @@ VaR_Christofferson1_backtest <- function(exceedences,
   n11 <- 0
   n10 <- 0
   n01 <- 0
-  
-  # Count number of entries which are not NAs
-  # n_entries <- sum(exceedences[!is.na(exceedences)])
   
   # Using only non-missing entries
   exceedences <- na.omit(exceedences)
@@ -998,7 +1035,7 @@ ES_uc_backtest <- function(CumVio,
     
     # Test that number of covariance matrices is correct
     if(n_cov != n){
-      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its covariance matrices\n\n'))
+      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist, ' (', n, ') are different from number of its covariance matrices (', n_cov, ')\n\n'))
     }
     
     # Test that number of gradients without NAs is correct
@@ -1010,7 +1047,7 @@ ES_uc_backtest <- function(CumVio,
     }
     
     if(n_grad != n){
-      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its gradients\n\n'))
+      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist, ' (', n, ') are different from number of its gradients (', n_grad, ')\n\n'))
     }
     
     # Extracting values necessary to calculate R
@@ -1145,7 +1182,7 @@ ES_cc_backtest <- function(CumVio,
     
     # Test that number of covariance matrices is correct
     if(n_cov != n){
-      cat(paste0('\nES CC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its covariance matrices\n\n'))
+      cat(paste0('\nES CC Backtest: Number of entries in ', index, ' CumVio_', speci_dist, ' (', n,') are different from number of its covariance matrices (',n_cov,')\n\n'))
     }
     
     # Test that number of gradients without NAs is correct
@@ -1157,7 +1194,7 @@ ES_cc_backtest <- function(CumVio,
     }
     
     if(n_grad != n){
-      cat(paste0('\nES CC Backtest: Number of entries in ', index, ' CumVio_', speci_dist,' are different from number of its gradients\n\n'))
+      cat(paste0('\nES CC Backtest: Number of entries in ', index, ' CumVio_', speci_dist, ' (', n,') are different from number of its gradients (', n_grad, ')\n\n'))
     }
     
     # Extracting values necessary to calculate R

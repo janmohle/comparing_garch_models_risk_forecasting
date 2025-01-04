@@ -2,29 +2,17 @@
 ####           TO-DO-LIST                                                    ####
 #################################################################################
 
-# 1. mechanism that if empirical and error somewhere that VaR cannot be calculated -> NA in empirical distribution in other.quantities done
-
-
 #DEFINITLY:
-# 1. consider to change order of backtests (function itself shouldn't go through data -> this should be done outside of function -> function only returns result for one test)
-# 2. implement corrected versions of test (with parameter 'corrected' in same function)
+
+# Recheck whole process and delete parts which are not needed anymore
 
 # Reconcider way how to test model with historical distribution
 # In the gradient calculation of mu and sigma, should it really be the forecasted value or the fitted value??? -> probably yes
-
-# Set correct solver control parameters (investigate how solver works)    done
-# Maybe add second optimization if first fails     done
-# take previous coefficiants as starting parameter for optimisation    done
-# rerun every 100th optimization.   done
-# think when to use global local combination!!   done
-
-# create speci_dist in the beginning for whole function done
 
 # continue insert NA into other.quantities done
 # handle errors in gradient calculation -> improve paramters of grad(): consider first richardson and if this fails then simple
 
 # implement corrected version of ES backtests (handle potential errors in gradient calculation first and think about how to deal with NA in other.quantities) (special case is empirical distribution)
-# add parameter that decides which backtests to make
 
 # Check if backtest for empirical violations makes sense
 
@@ -49,7 +37,6 @@
 # Test different parameters of program
 
 # CHALLANGES:
-# Implementing ES backtest which is robust against estimation uncertainty 
 
 # IDEAS:
 
@@ -115,34 +102,34 @@ tolerance_lvl = 0.05
 ################################################################################
 
 # Number of forecasts
-number_forecasts = 1250
+#number_forecasts = 50
 
 # Input data - has to be higher than parameter window_width (comment out if not needed) (can be set directly or using parameter number_forecasts)
-data_include = 1:(window_width+1+number_forecasts)
+#data_include = 1:(window_width+1+number_forecasts)
 
 # Indices (comment out if not needed)
 # Be careful when simulation = TRUE because indices are also subset then
-#index_include = c(3,4)
+#index_include = c(1)
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(1)
+#varspec_include = c(8)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1)
+#dist_include = c(5,6)
 
 # Should real data or simulated data be used? TRUE for simulated data
-simulation = TRUE
+simulation = FALSE
 
 # Number of simulations (specifiy if simulation = TRUE)
-number_simulations = 100
+#number_simulations = 100
 
 # Execution of VaR and ES forecast
 # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
 # FALSE: old results are being loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
-execution_of_VaR_ES_forecasting = TRUE
+execution_of_VaR_ES_forecasting = FALSE
 
 # Execution of VaR and ES Backtests
-execute_Backtest = TRUE
+execute_Backtest = FALSE
 
 #################################################################################
 ####           General model specification set-up                            ####
@@ -162,7 +149,7 @@ if(simulation){
     indices <- c('DAX',
                  'WIG',
                  'BTC',
-                 'GOLD')
+                 'GLD')
     }
 
 
@@ -172,7 +159,20 @@ var.spec.list <- list(spec1 = list(model = 'sGARCH',
                       spec2 = list(model = 'eGARCH',
                                    garchOrder = c(arch, garch)),
                       spec3 = list(model = 'gjrGARCH',
-                                   garchOrder = c(arch, garch)))
+                                   garchOrder = c(arch, garch)),
+                      spec4 = list(model = 'apARCH',
+                                   garchOrder = c(arch, garch)),
+                      spec5 = list(model = 'csGARCH',
+                                   garchOrder = c(arch, garch)),
+                      spec6 = list(model = 'fGARCH',
+                                   garchOrder = c(arch, garch),
+                                   submodel = 'NAGARCH'),
+                      spec7 = list(model = 'fGARCH',
+                                   garchOrder = c(arch, garch),
+                                   submodel = 'ALLGARCH'),
+                      spec8 = list(model = 'fGARCH',
+                                   garchOrder = c(arch, garch),
+                                   submodel = 'NGARCH'))
 
 # Mean specification
 mean.spec <- list(armaOrder = c(ar,ma),
@@ -193,9 +193,9 @@ dist.spec.list <-  list(norm = 'norm',      #1
                         sstd = 'sstd',      #5
                         sged = 'sged',      #6
                         ghyp = 'ghyp',      #7   # nests sstd and nig
-                        nig = 'nig',        #8   # nig leads to problems (a lot of NaN in spec 3 for GOLD -> Should I exclude it)
-                        ghst = 'ghst',      #9   # optimazation takes often too long with this distribution -> Sould I exclude it? --- df and skewness parameter interact in complicated way
-                        jsu = 'jsu',        #10  # jsu leads to some problems (NaN in sigma in Spec 3 for GOLD -> Should I include it or not?)
+                        nig = 'nig',        #8   # dont include: nig leads to problems (a lot of NaN in spec 3 for GLD -> Should I exclude it)
+                        ghst = 'ghst',      #9   # dont include: optimazation takes often too long with this distribution -> Sould I exclude it? --- df and skewness parameter interact in complicated way
+                        jsu = 'jsu',        #10  # condider to include: jsu leads to some problems (NaN in sigma in Spec 3 for GLD -> Should I include it or not?)
                         empirical = 'norm') #11  # Normal distribution for QML estimation -> asymptotically consistent (USE IN TEXT AS JUSTIFICATION AND SEARCH FOR REFERENCE)
 
 
@@ -222,35 +222,42 @@ for(index in indices){
   
   # Main descriptive statistics
   main.statistics[[index]] <- ts_main_statistics(index = index,
-                                                 lags_Ljung_Box_test = 15,
-                                                 lags_ArchTest = 12,
+                                                 lags_Ljung_Box_test = 10,
+                                                 lags_ArchTest = 10,
                                                  nu = 5)
 }
 rm(index)
 
 # DAX
-  # -> significant autocorrelation
-  # -> significant ARCH effect
+  # -> significant autocorrelation (10 lags) (but looks very uninformative and weak)
+  # -> significant ARCH effect (10 lags)
   # -> leverage effect
-  # -> mean model could potentially be usefull
+  # -> mean model could potentially be useful
   
 # WIG
-  # -> no significant autocorrelation
-  # -> significant ARCH effect
+  # -> no significant autocorrelation (10 lags)
+  # -> significant ARCH effect (10 lags)
   # -> leverage effect
   # NO MEAN MODEL NEEDED
   
 # BTC
-  # -> no significant autocorrelation
-  # -> significant ARCH effect
-  # -> no clear leverage effect
-  # NO MEAN MODEL NEEDED
+  # -> significant autocorrelation (10 lags) (potentially informative: first day - negative reaction; second day - positive reaction -- but very small coefficients)
+  # -> significant ARCH effect (10 lags)
+  # -> no clear leverage effect (only very slight)
+  # -> mean model could potentially be useful
   
-# GOLD
-  # -> no significant autocorrelation (but p < 0.1)
-  # -> significant ARCH effect
-  # -> no clear leverage effect
+# GLD
+  # -> no significant autocorrelation (10 lags)
+  # -> significant ARCH effect (10 lags)
+  # -> no or late and weak leverage effect
   # NO MEAN MODEL NEEDED
+
+# GENERAL
+# - Serial autocorrelation seems to be non existed or very slight -> mostly uninformative, although direction in BTC interesting
+# - Volatility clustering always existent
+# - leverage effect seems to be stronger in stock indices than in BTC and espacially stronger than in GLD
+# - Standardized returns are not normally distributed (excess kurtosis and negative skewness)
+# - slightly positive mean and median of returns (DAX, WIG, GLD: 1e-4, BTC: 1e-3) -> slight positive drift
 
 #################################################################################
 ####  Forecasting or loading of forecasted values                            ####
@@ -293,13 +300,13 @@ if(plotting_1){
 plotting_2 = F
 if(plotting_2){
 # Nice plot of VaR and ES for WIG spec2 sged
-ggplot(data =  sim5[-1:-(window_width + 2),],
+ggplot(data =  GLD[-1:-(window_width + 2),],
        mapping = aes(x = Date,
                      y = Return)) +
-  geom_point(aes(colour = as.factor(Exceeded_VaR_spec1_norm))) +
-  geom_line(aes(y = VaR_spec1_norm),
+  geom_point(aes(colour = as.factor(Exceeded_VaR_spec8_sged))) +
+  geom_line(aes(y = VaR_spec8_sged),
             col = 'orange') +
-  geom_line(aes(y = ES_spec1_norm),
+  geom_line(aes(y = ES_spec8_sged),
             col = 'purple') +
   scale_color_manual(values = c("1" = "red", "0" = "black"),
                      name = "Exceeded VaR",
