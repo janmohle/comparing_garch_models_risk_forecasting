@@ -430,14 +430,14 @@
     },
     "data.table": {
       "Package": "data.table",
-      "Version": "1.16.2",
+      "Version": "1.16.4",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "methods"
       ],
-      "Hash": "2e00b378fc3be69c865120d9f313039a"
+      "Hash": "38bbf05fc2503143db4c734a7e5cab66"
     },
     "dbplyr": {
       "Package": "dbplyr",

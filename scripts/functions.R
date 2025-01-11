@@ -41,11 +41,6 @@ price_return_plots_func <- function(index){
 #########################################################################
 
 ts_main_statistics <- function(index, lags_Ljung_Box_test, lags_ArchTest, nu) {
-  # Required libraries
-  library(FinTS)
-  library(moments)
-  library(tseries)
-  library(rugarch)
   
   # Assign data
   data <- get(index)

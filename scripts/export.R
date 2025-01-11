@@ -1,3 +1,7 @@
+####################################################################################
+####          Export tables and plots to LaTeX format                           ####
+####################################################################################
+
 library("xtable")     # package "Export Tables to LaTeX or HTML"
 library("tikzDevice") # package "R Graphics Output in LaTeX Format"
 

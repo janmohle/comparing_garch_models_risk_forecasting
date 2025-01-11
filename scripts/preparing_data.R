@@ -2,10 +2,6 @@
 ####           Preparing data                                                ####
 #################################################################################
 
-#needed libraries
-#library(tidyverse)
-
-
 if(simulation){
   
   #Execute simulation

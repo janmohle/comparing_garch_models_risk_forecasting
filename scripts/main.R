@@ -57,6 +57,9 @@
 ####           General set-up                                                ####
 #################################################################################
 
+# When using code for the first time, use renv::restore() to install all packages according to the renv.lock file!
+# A dialog will pop up and ask if all listed packages should be installed. Enter 'Y' in console. Packages are then installed with correct version.
+
 # Initial cleaning
 rm(list = ls())
 if (dev.cur() != 1) {
@@ -70,6 +73,8 @@ library(zoo)
 library(rugarch)
 library(FinTS)
 library(numDeriv)
+library(moments)
+library(tseries)
 
 # Function definition
 source('scripts/functions.R')
@@ -92,7 +97,7 @@ arch = 1
 garch = 1
 
 # Width of estimation window for rolling forecasting
-window_width = 500
+window_width = 750
 
 # Tolerance level for VaR and ES
 tolerance_lvl = 0.05
@@ -102,7 +107,7 @@ tolerance_lvl = 0.05
 ################################################################################
 
 # Number of forecasts
-#number_forecasts = 50
+number_forecasts = 2000
 
 # Input data - has to be higher than parameter window_width (comment out if not needed) (can be set directly or using parameter number_forecasts)
 #data_include = 1:(window_width+1+number_forecasts)
@@ -112,24 +117,24 @@ tolerance_lvl = 0.05
 #index_include = c(1)
 
 # Variance specifications (comment out if not needed)
-#varspec_include = c(8)
+varspec_include = c(1)
 
 # Distribution assumptions (comment out if not needed)
-#dist_include = c(5,6)
+dist_include = c(1)
 
 # Should real data or simulated data be used? TRUE for simulated data
-simulation = FALSE
+simulation = TRUE
 
 # Number of simulations (specifiy if simulation = TRUE)
-#number_simulations = 100
+number_simulations = 3
 
 # Execution of VaR and ES forecast
 # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
 # FALSE: old results are being loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
-execution_of_VaR_ES_forecasting = FALSE
+execution_of_VaR_ES_forecasting = TRUE
 
 # Execution of VaR and ES Backtests
-execute_Backtest = FALSE
+execute_Backtest = TRUE
 
 #################################################################################
 ####           General model specification set-up                            ####
