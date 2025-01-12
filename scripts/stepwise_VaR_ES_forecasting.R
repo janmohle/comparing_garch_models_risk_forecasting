@@ -24,8 +24,8 @@ execution_of_VaR_ES_forecasting_function <- function(){
     # Extracting returns and dates
     index_name <- index
     data <- get(index)
-    data_returns <- data$Return
-    data_dates <- data$Date
+    data_returns <- data[['Return']]
+    data_dates <- data[['Date']]
     
     # Storing return data as zoo object
     returns <- zoo(data_returns, data_dates)
@@ -33,13 +33,14 @@ execution_of_VaR_ES_forecasting_function <- function(){
     # Omitting NAs (first entry in returns is NA)
     returns <- na.omit(returns)
     
-    # Creating empty list for forecasted VaR, ES, mu, sigma, skew, shape and dist
+    # Creating empty list for forecasted VaR, ES, mu, sigma, skew, shape, lambda and dist
     forecasted.VaR.list <- list()
     forecasted.ES.list <- list()
     forecasted.mu.list <- list()
     forecasted.sigma.list <- list()
     forecasted.skew.list <- list()
     forecasted.shape.list <- list()
+    forecasted.lambda.list <- list()
     forecasted.dist.list <- list()
     
     # Loop over variance specifications
@@ -85,10 +86,6 @@ execution_of_VaR_ES_forecasting_function <- function(){
           rm(num_window_shift, envir = .GlobalEnv)
         }
         
-
-        # !!!TESTING!!! VaR and ES of last observation (delete in final version)!!!!!!!!!
-        #test_VaR_ES <- rolling.VaR.ES
-        
         # Returning object after rollapply is difficult to handle, because predict_VaR_ES_1_ahead returns list in each iteration
         # Dates and values must be extracted and stored in a more handy way
         
@@ -98,7 +95,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
         # Creating data frame for easier extraction of values
         rolling.VaR.ES.df <- as.data.frame(rolling.VaR.ES)
 
-        # Extracting VaR, ES, mu, sigma, skew, shape, dist values with loop and converting it to zoo object
+        # Extracting VaR, ES, mu, sigma, skew, shape, lambda and dist values with loop and converting it to zoo object
         for(col in names(rolling.VaR.ES.df)){
           values <- vector()
           for(obs in rolling.VaR.ES.df[[col]]){
@@ -124,22 +121,6 @@ execution_of_VaR_ES_forecasting_function <- function(){
       }
     }
     
-    
-    
-    
-    #!!!EXCLUDE?!!!
-    # Linear interpolation of NAs 
-    #for(col_name in names(forecasted.VaR.list)){
-     # forecasted.VaR.list[[col_name]] <- na.approx(forecasted.VaR.list[[col_name]],
-    #                                               na.rm = FALSE)
-    #}
-    
-    #for(col_name in names(forecasted.ES.list)){
-     # forecasted.ES.list[[col_name]] <- na.approx(forecasted.ES.list[[col_name]],
-      #                                            na.rm = FALSE)
-    #}
-    #!!!!!!!!!
-    
     # Leading lists with forecasted measurements
     for(measure in names(rolling.VaR.ES.df)){
       forecasted_measure_list_name <- paste0('forecasted.', measure, '.list')
@@ -152,8 +133,9 @@ execution_of_VaR_ES_forecasting_function <- function(){
       assign(forecasted_measure_list_name, forecasted_measure_list)
     }
     
-    # Creating data frame for VaR, ES, mu, sigma, skew, shape and dist
+    # Creating data frame for VaR, ES, mu, sigma, skew, shape, sigma and dist
     for(measure in names(rolling.VaR.ES.df)){
+      
       forecasted_measure_list_name <- paste0('forecasted.', measure, '.list')
       forecasted_measure_list <- get(forecasted_measure_list_name)
       
@@ -164,7 +146,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
       assign(forecasted_measure_data_frame_name, forecasted_measure_data_frame)
     }
     
-    # Joining VaR, ES, mu, sigma, skew, shape and dist data frame to return data frame
+    # Joining VaR, ES, mu, sigma, skew, shape, lambda and dist data frame to return data frame
     data <- data %>%
       left_join(forecasted.VaR.data.frame, by = 'Date') %>%
       left_join(forecasted.ES.data.frame, by = 'Date') %>%
@@ -172,6 +154,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
       left_join(forecasted.sigma.data.frame, by = 'Date') %>%
       left_join(forecasted.skew.data.frame, by = 'Date') %>%
       left_join(forecasted.shape.data.frame, by = 'Date') %>%
+      left_join(forecasted.lambda.data.frame, by = 'Date') %>%
       left_join(forecasted.dist.data.frame, by = 'Date')
     
     # Assign exceedence flag for VaR: 0 -> no exceedence, 1 -> exceedence
@@ -183,7 +166,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
       }
     }
     
-    # Computing cumulative exceedences for ES backtesting (values could vary slightly because of distribution parameter estimation errors due to approximation in numerical optimization!)
+    # Computing cumulative exceedences for ES backtesting (values from run to run could vary slightly because of distribution parameter estimation errors due to approximation in numerical optimization!)
     dist.spec.names.vec <- unlist(dist.spec.list)
     var.spec.names.vec <- names(var.spec.list)
 
@@ -198,13 +181,14 @@ execution_of_VaR_ES_forecasting_function <- function(){
           
           # Current combination of var and dist
           var_dist <- paste0(var, '_', dist)
-          
+
           # Assign name of currently needed column
           dist_var_dist <- paste0('dist_', var_dist)
           mu_var_dist <- paste0('mu_', var_dist)
           sigma_var_dist <- paste0('sigma_', var_dist)
           skew_var_dist <- paste0('skew_', var_dist)
           shape_var_dist <- paste0('shape_', var_dist)
+          lambda_var_dist <- paste0('lambda_', var_dist)
           
           # Test that data is not NA. If data is NA, than assign NAs to u and CumVio
           Exceeded_VaR_var_dist <- paste0('Exceeded_VaR_', var_dist)
@@ -239,7 +223,8 @@ execution_of_VaR_ES_forecasting_function <- function(){
                          mu = data[[mu_var_dist]][i],
                          sigma = data[[sigma_var_dist]][i],
                          skew = data[[skew_var_dist]][i],
-                         shape = data[[shape_var_dist]][i])
+                         shape = data[[shape_var_dist]][i],
+                         lambda = data[[lambda_var_dist]][i])
             }
             
             # Calculate cumulative violations
@@ -261,9 +246,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
               file = paste0(output_folder, index_name, '_with_forecasted_VaR_ES.csv'),
               row.names = FALSE)
   }
-  #return(test_VaR_ES) # !!!TESTING!!! remove in final version
 }
-
 
 ################################################################################################
 ### Execution of VaR ES forecasting if execution_of_VaR_ES_forecasting == TRUE, else loading ###

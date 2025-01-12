@@ -17,9 +17,9 @@ price_return_plots_func <- function(index){
     geom_line(na.rm = TRUE, size = 0.5) +
     labs(title = paste0('Price ',index)) +
     theme(plot.title = element_text(hjust = 0.1),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
   # Return plot
   index.price.return.plots[['Return']] <- ggplot(data,
@@ -28,19 +28,22 @@ price_return_plots_func <- function(index){
     geom_line(na.rm = TRUE, size = 0.5) +
     labs(title = paste0('Daily Log-Returns ',index)) +
     theme(plot.title = element_text(hjust = 0.5),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
 
   return(index.price.return.plots)
 }
 
 
 #########################################################################
-### Returns most important statistics for financial time series data ####
+### Returns important statistics for financial time series data      ####
 #########################################################################
 
-ts_main_statistics <- function(index, lags_Ljung_Box_test, lags_ArchTest, nu) {
+ts_main_statistics <- function(index,
+                               lags_Ljung_Box_test,
+                               lags_ArchTest,
+                               nu) {
   
   # Assign data
   data <- get(index)
@@ -48,108 +51,111 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test, lags_ArchTest, nu) {
   # Retrieve Returns
   data <- data[['Return']]
   
-  #Omit nas
+  # Omit NAs
   data <- na.omit(data)
   
-  # Initialize results list
+  # Initialize result list
   results <- list()
   
   # Calculate mean
-  results$mean <- mean(data)
+  results[['mean']] <- mean(data)
   
   # Calculate standard deviation
-  results$sd <- sd(data)
+  results[['sd']] <- sd(data)
   
   # Calculate quantiles (0, 0.25, 0.5, 0.75, 1)
-  results$quantiles <- quantile(data)
+  results[['quantiles']] <- quantile(data)
   
   # Calculate skewness
-  results$skewness <- skewness(data)
+  results[['skewness']] <- skewness(data)
   
   # Calculate kurtosis
-  results$kurtosis <- kurtosis(data)
+  results[['kurtosis']] <- kurtosis(data)
   
   # Perform Ljung-Box test for serial correlation
-  results$Ljung_Box_test <- stats::Box.test(data, lag = lags_Ljung_Box_test, type = 'Ljung-Box')
+  results[['Ljung_Box_test']] <- stats::Box.test(data,
+                                                 lag = lags_Ljung_Box_test,
+                                                 type = 'Ljung-Box')
   
   # Perform ARCH test for conditional heteroskedasticity
-  results$ArchTest <- FinTS::ArchTest(data, lags = lags_ArchTest)
+  results[['ArchTest']] <- FinTS::ArchTest(data,
+                                           lags = lags_ArchTest)
   
-  # Standerdize data
-  data_standerdized <- (data - results$mean) / results$sd
+  # Standardize data
+  data_standardized <- (data - results[['mean']]) / results[['sd']]
   
   # Perform Jaque Bera test for normality
-  results$JB_test <- tseries::jarque.bera.test(data_standerdized)
+  results[['JB_test']] <- tseries::jarque.bera.test(data_standardized)
   
   # Density plot compared with normal and t distribution
-  density_data <- data.frame(x = data_standerdized)
-  results$density <- ggplot(density_data,
+  density_data <- data.frame(x = data_standardized)
+  results[['density']] <- ggplot(density_data,
                             aes(x = x)) +
-    geom_density(aes(color = "Standardized Returns")) +
+    geom_density(aes(color = 'Standardized Returns')) +
     geom_function(fun = function(x) ddist(y = x),
-                  aes(color = "Normal Distribution")) +
+                  aes(color = 'Normal Distribution')) +
     geom_function(fun = function(x) ddist(y = x,
                                           distribution = 'std',
                                           shape = nu),
                   aes(color = paste0('t-Distribution with ', nu, ' df'))) +
     scale_color_manual(
-      values = c("black", "darkgreen", "purple"),
-      breaks = c("Standardized Returns", "Normal Distribution", paste0('t-Distribution with ', nu, ' df'))
+      values = c('black', 'darkgreen', 'purple'),
+      breaks = c('Standardized Returns', 'Normal Distribution', paste0('t-Distribution with ', nu, ' df'))
     )  +
-    labs(color = "Distributions",
-         linetype = "Distributions",
+    labs(color = 'Distributions',
+         linetype = 'Distributions',
          title = paste0('Density Comparison: ', index),
          x = NULL,
          y = NULL) +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = c(0.1, 0.5),
-          legend.justification = "left",
-          panel.background = element_rect(fill = "white"),
-          legend.background = element_rect(fill = "white", color = NA),
+          legend.justification = 'left',
+          panel.background = element_rect(fill = 'white'),
+          legend.background = element_rect(fill = 'white', color = NA),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
   # Lower tail compared with normal and t distribution
   results$lower_tail <- ggplot(density_data,
                                aes(x = x)) +
-    geom_density(aes(color = "Standardized Returns")) +
+    geom_density(aes(color = 'Standardized Returns')) +
     geom_function(fun = function(x) ddist(y = x),
-                  aes(color = "Normal Distribution")) +
+                  aes(color = 'Normal Distribution')) +
     geom_function(fun = function(x) ddist(y = x,
                                           distribution = 'std',
                                           shape = nu),
                   aes(color = paste0('t-Distribution with ', nu, ' df'))) +
     scale_color_manual(
-      values = c("black", "darkgreen", "purple"),
-      breaks = c("Standardized Returns", "Normal Distribution", paste0('t-Distribution with ', nu, ' df'))
+      values = c('black', 'darkgreen', 'purple'),
+      breaks = c('Standardized Returns', 'Normal Distribution', paste0('t-Distribution with ', nu, ' df'))
     )  +
-    labs(color = "Distributions",
-         linetype = "Distributions",
+    labs(color = 'Distributions',
+         linetype = 'Distributions',
          title = paste0('Lower Tail Comparison: ', index),
          x = NULL,
          y = NULL) +
     theme(plot.title = element_text(hjust = 0.5),
           legend.position = c(0.1, 0.5),
-          legend.justification = "left",
-          panel.background = element_rect(fill = "white"),
-          legend.background = element_rect(fill = "white", color = NA),
+          legend.justification = 'left',
+          panel.background = element_rect(fill = 'white'),
+          legend.background = element_rect(fill = 'white', color = NA),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black")) +
+          axis.line = element_line(color = 'black')) +
     coord_cartesian(xlim = c(-4.5, -1),
                     ylim = c(0, 0.3))
   
   # QQ Plot (normal)
-  quantiles <- data.frame(q_emp = data_standerdized,
-                          p = 1 / length(data_standerdized))
+  quantiles <- data.frame(q_emp = data_standardized,
+                          p = 1 / length(data_standardized))
   quantiles <- quantiles %>%
     arrange(q_emp) %>%
     mutate(p = cumsum(p)) %>%
     slice(1:(n() - 1)) %>%
     mutate(q_theo = qnorm(p))
   
-  results$qqplot <- ggplot(quantiles,
-                           aes(x = q_theo,
-                               y = q_emp)) +
+  results[['qqplot']] <- ggplot(quantiles,
+                                aes(x = q_theo,
+                                    y = q_emp)) +
     geom_point() +
     geom_function(fun = function(x) x,
                   col = 'red') +
@@ -157,117 +163,127 @@ ts_main_statistics <- function(index, lags_Ljung_Box_test, lags_ArchTest, nu) {
          x = 'Theoretical Quantile Normal Distribution',
          y = 'Empirical Quantile') +
     theme(plot.title = element_text(hjust = 0.5),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
   # Significance threshold for ACFs and PACFs
   significance_threshold <- qnorm(0.975) / sqrt(length(data))
   
-  # ACF for data
-  acf_values <- acf(data, plot = F)
-  acff <<- acf_values
+  # ACF plot
+  acf_values <- acf(data,
+                    plot = FALSE)
+  
+  
+  
+  #acff <<- acf_values
+  
+  
+  
   acf_values <- data.frame(lag = acf_values$lag[2:21],
                            acf = acf_values$acf[2:21])
-  results$acf <- ggplot(acf_values,
-                        aes(x = lag,
-                            y = acf)) +
+  results[['acf']] <- ggplot(acf_values,
+                             aes(x = lag,
+                                 y = acf)) +
     geom_bar(stat = 'identity') +
     geom_hline(yintercept = c(-significance_threshold, significance_threshold),
-               linetype = "dashed",
-               color = "red") +
-    labs(x = "Lags",
-         y = "ACF",
-         title = paste0("ACF Plot: ", index)) +
+               linetype = 'dashed',
+               color = 'red') +
+    labs(x = 'Lags',
+         y = 'ACF',
+         title = paste0('ACF Plot: ', index)) +
     theme(plot.title = element_text(hjust = 0.5),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
-  # PACF for data
-  pacf_values <- pacf(data, plot = F)
+  # PACF plot
+  pacf_values <- pacf(data,
+                      plot = FALSE)
   pacf_values <- data.frame(lag = pacf_values$lag[1:20],
                             pacf = pacf_values$acf[1:20])
-  results$pacf <- ggplot(pacf_values,
-                         aes(x = lag,
-                             y = pacf)) +
+  results[['pacf']] <- ggplot(pacf_values,
+                              aes(x = lag,
+                                  y = pacf)) +
     geom_bar(stat = 'identity') +
     geom_hline(yintercept = c(-significance_threshold, significance_threshold),
-               linetype = "dashed",
-               color = "red") +
-    labs(x = "Lags",
-         y = "PACF",
-         title = paste0("PACF Plot: ", index)) +
+               linetype = 'dashed',
+               color = 'red') +
+    labs(x = 'Lags',
+         y = 'PACF',
+         title = paste0('PACF Plot: ', index)) +
     theme(plot.title = element_text(hjust = 0.5),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
-  # ACF for squared data
-  acf_values <- acf(data^2, plot = F)
-  acf_values <- data.frame(lag = acf_values$lag[2:20],
-                           acf = acf_values$acf[2:20])
-  results$acf_squared <- ggplot(acf_values,
-                                aes(x = lag,
-                                    y = acf)) +
+  # ACF for squared data plot
+  acf_values <- acf(data^2,
+                    plot = FALSE)
+  acf_values <- data.frame(lag = acf_values$lag[2:21],
+                           acf = acf_values$acf[2:21])
+  results[['acf_squared']] <- ggplot(acf_values,
+                                     aes(x = lag,
+                                         y = acf)) +
     geom_bar(stat = 'identity') +
     geom_hline(yintercept = c(-significance_threshold, significance_threshold),
-               linetype = "dashed",
-               color = "red") +
-    labs(x = "Lags",
-         y = "ACF",
-         title = paste0("ACF Plot Squared: ", index)) +
+               linetype = 'dashed',
+               color = 'red') +
+    labs(x = 'Lags',
+         y = 'ACF',
+         title = paste0('ACF Plot Squared: ', index)) +
     theme(plot.title = element_text(hjust = 0.5),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
-  # PACF for squared data
-  pacf_values <- pacf(data^2, plot = F)
+  # PACF for squared data plot
+  pacf_values <- pacf(data^2,
+                      plot = FALSE)
   pacf_values <- data.frame(lag = pacf_values$lag[1:20],
                             pacf = pacf_values$acf[1:20])
-  results$pacf_squared <- ggplot(pacf_values,
-                         aes(x = lag,
-                             y = pacf)) +
+  results[['pacf_squared']] <- ggplot(pacf_values,
+                                      aes(x = lag,
+                                          y = pacf)) +
     geom_bar(stat = 'identity') +
     geom_hline(yintercept = c(-significance_threshold, significance_threshold),
-               linetype = "dashed",
-               color = "red") +
-    labs(x = "Lags",
-         y = "PACF",
-         title = paste0("PACF Plot Squared: ", index)) +
+               linetype = 'dashed',
+               color = 'red') +
+    labs(x = 'Lags',
+         y = 'PACF',
+         title = paste0('PACF Plot Squared: ', index)) +
     theme(plot.title = element_text(hjust = 0.5),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
-  # CCF for data and squared data
-  ccf_values <- ccf(data^2, data, plot = F)
+  # CCF for data and squared data plot
+  ccf_values <- ccf(data^2, data,
+                    plot = FALSE)
   lower <- ceiling(length(ccf_values$lag) / 2) + 1
   upper <- lower + 19
   ccf_values <- data.frame(lag = ccf_values$lag[lower:upper],
                            ccf = ccf_values$acf[lower:upper])
-  results$ccf <- ggplot(ccf_values,
-                        aes(x = lag,
-                            y = ccf)) +
+  results[['ccf']] <- ggplot(ccf_values,
+                             aes(x = lag,
+                                 y = ccf)) +
     geom_bar(stat = 'identity') +
     geom_hline(yintercept = c(-significance_threshold, significance_threshold),
-               linetype = "dashed",
-               color = "red") +
-    labs(x = "Lags",
-         y = "CCF",
-         title = paste0("CCF Plot Leverage Effect: ", index)) +
+               linetype = 'dashed',
+               color = 'red') +
+    labs(x = 'Lags',
+         y = 'CCF',
+         title = paste0('CCF Plot Leverage Effect: ', index)) +
     theme(plot.title = element_text(hjust = 0.5),
-          panel.background = element_rect(fill = "white"),
+          panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
-          axis.line = element_line(color = "black"))
+          axis.line = element_line(color = 'black'))
   
   return(results)
 }
 
-
 ############################################################################################
-### Returns one-step-ahead VaR and ES forecast  (firstly convert input data to zoo object) ###
+### Returns one-step-ahead VaR and ES forecast  (input data has to be zoo object)        ###
 ############################################################################################
 predict_VaR_ES_1_ahead <- function(data,
                                    var.spec,
@@ -278,7 +294,7 @@ predict_VaR_ES_1_ahead <- function(data,
                                    spec_i,
                                    dist_spec){
   
-  # Test if data is zoo object and stop function if not
+  # Stopping function if data is not zoo object
   if(!is.zoo(data)){
     data_class <- class(data)
     error_message <- paste0('Input is ',data_class, ' but needs to be zoo object!')
@@ -331,6 +347,7 @@ predict_VaR_ES_1_ahead <- function(data,
     sigma <- zoo(NA, index_last_obs)
     skew <- zoo(NA, index_last_obs)
     shape <- zoo(NA, index_last_obs)
+    lambda <- zoo(NA, index_last_obs)
     dist.spec <- zoo(NA, index_last_obs)
     
     VaR_and_ES <- list(VaR = VaR,
@@ -339,11 +356,12 @@ predict_VaR_ES_1_ahead <- function(data,
                        sigma = sigma,
                        skew = skew,
                        shape = shape,
+                       lambda = lambda,
                        dist = dist.spec)
     
     # Print date which can't be calculated
     date <- index(VaR_and_ES$VaR)
-    message <- paste0('Preceeding date of date where VaR and ES cannot be calculated: ', date, '\n\n')
+    message <- paste0('Preceeding date of date of which VaR and ES forecast cannot be calculated: ', date, '\n\n')
     cat(message)
     
     # Return VaR and ES
@@ -364,7 +382,6 @@ predict_VaR_ES_1_ahead <- function(data,
 
   mod_num_window_shift <- num_window_shift %% 100
   
-  
   # Specifying GARCH model
   spec <- ugarchspec(variance.model = var.spec,
                      mean.model = mean.spec,
@@ -376,49 +393,39 @@ predict_VaR_ES_1_ahead <- function(data,
   if(mod_num_window_shift != 0){
     
     # More efficient and faster solver, since solnp is tried first with parameters of previous window as starting parameters (hybrid tries: solnp -> nlminb -> gosolnp -> nloptr)
-    # solver.control specified for gosolnp and nloptr which are used if previous optimizer have failed
+    # solver.control specified for gosolnp and nloptr which are used if previous optimizer fail
     fit <- tryCatch(
       {
-        #print('hybrid start')
-        
         ugarchfit(spec = spec,
                   data = data,
                   solver = 'hybrid',
-                  solver.control = list(n.restarts = 15, # gosolnp
-                                        parallel = TRUE, # gosolnp
+                  solver.control = list(n.restarts = 15,                               # gosolnp
+                                        parallel = TRUE,                               # gosolnp
                                         cores = floor(parallel::detectCores() * 0.75), # gosolnp
-                                        rseed = 123, # gosolnp
-                                        maxeval = 50000, # nloptr
-                                        print_level = 0, # nloptr
-                                        solver = 10)) # nloptr
+                                        rseed = 123,                                   # gosolnp
+                                        maxeval = 50000,                               # nloptr
+                                        print_level = 0,                               # nloptr
+                                        solver = 10))                                  # nloptr
       }, error = function(e){
         return(NA)
       }
     )
-    
-    
-    
-    #print('hybrid end')
-    
-    #print(coef(fit))
-    
-    
   } else {
     
-    # Ensure that fit is NA if hybrid solver was not supposed to be run -> condition for next solver
+    # Ensure that fit is NA if hybrid solver is not supposed to be run -> condition for next solver!
     fit <- NA
   }
- 
+  
   if(suppressWarnings(is.na(fit)) | mod_num_window_shift == 0){
-    
-    #print('start global')
-    
-    
-    
-    # Optimization routine first searches with global solver for global optimum (to prevent from local optima) and then uses a local solver for fine-tuning
-    complex_ugarchfit <- function(spec, data, var.spec, mean.spec, dist.spec){
+ 
+    # Optimization routine first searches with global solver for global optima (to not be stuck in local optima which is not global optima) and then uses a local solver for fine-tuning
+    complex_ugarchfit <- function(spec,
+                                  data,
+                                  var.spec,
+                                  mean.spec,
+                                  dist.spec){
       
-      # Global optimization to avoid local maximal
+      # Global optimization
       global_fit <- ugarchfit(spec = spec,
                               data = data,
                               solver = 'gosolnp',
@@ -426,7 +433,6 @@ predict_VaR_ES_1_ahead <- function(data,
                                                     parallel = TRUE,
                                                     cores = floor(parallel::detectCores() * 0.75),
                                                     rseed = 123)) # restarts introduce randomness -> rseed for reproducibility
-      
       
       # Extract parameter of global_fit to use them as starting parameters for local fine-tuning
       coef_global_fit <- as.list(coef(global_fit))
@@ -437,23 +443,12 @@ predict_VaR_ES_1_ahead <- function(data,
                                          distribution.model = dist.spec,
                                          start.pars = coef_global_fit)
       
-      
-      #print(coef(global_fit))
-      #print('start local')
-      
-      
       local_fine_tuned_fit <- ugarchfit(spec = spec_with_global_fit,
                                         data = data,
                                         solver = 'nloptr',
                                         solver.control = list(maxeval = 25000,
                                                               print_level = 0,
                                                               solver = 10))
-      
-      
-      #print('end both')
-      #print(coef(local_fine_tuned_fit))
-      
-      
       return(local_fine_tuned_fit)
     }
     
@@ -472,22 +467,16 @@ predict_VaR_ES_1_ahead <- function(data,
       }
     )
   }
-  
-  
-  # Information regarding convergence (Exclude later again or store information in different way)
-  #fit_convergence <- fit@fit$convergence
-  #print(fit_convergence)
-  #rm(fit_convergence)
-  
-  
-  
+
   # If fit is NA than NAs get returned for VaR and ES forecast
   if(suppressWarnings(is.na(fit))){
     
     # Additionally, coef_prev_fit and num_window_shift are removed to start next iteration with more complex solver
-    rm(coef_prev_fit, num_window_shift, envir = .GlobalEnv)
+    rm(coef_prev_fit,
+       num_window_shift,
+       envir = .GlobalEnv)
     
-    # Storing last date of data and reason of NA
+    # Storing last date of data and reason for NA
     new_entry_NA_fit <- index_last_obs
     names(new_entry_NA_fit) <- speci_dist
     NA.information[[index_name]][['fit']] <<- c(NA.information[[index_name]][['fit']], new_entry_NA_fit)
@@ -502,14 +491,20 @@ predict_VaR_ES_1_ahead <- function(data,
   # Storing coefficients for next run within one model (window shift) as starting parameter vector to speed up optimization
   coef_prev_fit <<- as.list(coef_fit)
   
-  # Extracting skewness and shape parameter (if not prevalent, NA gets assigned)
-  skew <- ifelse('skew' %in% names(coef_fit), coef_fit['skew'], NA)
-  shape <- ifelse('shape' %in% names(coef_fit), coef_fit['shape'], NA)
+  # Extracting skewness, shape and lambda parameter (if not prevalent, NA gets assigned)
+  skew <- ifelse('skew' %in% names(coef_fit),
+                 coef_fit['skew'],
+                 NA)
+  shape <- ifelse('shape' %in% names(coef_fit),
+                  coef_fit['shape'],
+                  NA)
+  lambda <- ifelse('ghlambda' %in% names(coef_fit),
+                   coef_fit['ghlambda'],
+                   NA)
   
-  # Storing covariance matrices of parameter estimates for every forecast REMOVE IF STATEMENT
-  other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- vcov(fit)
+  # Storing parameter estimates and covariance matrix of parameter estimates for every forecast
   other.quantities[[index_name]][[speci_dist]][['coef_est']][[as.character(index_last_obs)]] <<- coef_fit
-  
+  other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- vcov(fit)
   
   # Calculation of gradient of mu
   # Function that returns forecasted mu depending on parameters
@@ -530,7 +525,7 @@ predict_VaR_ES_1_ahead <- function(data,
     return(mu)
   }
   
-  # Calculate gradient of mu_func at coef_opt_vec
+  # Calculate gradient of mu_func at coef_fit
   grad_mu <- tryCatch(
     {
       grad(func = mu_func,
@@ -540,7 +535,7 @@ predict_VaR_ES_1_ahead <- function(data,
     }, error = function(e){
       cat('\nGradient calculation of mu did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message)
       
-      # Storing last date of data and reason of NA
+      # Storing last date of data and reason for NA
       new_entry_NA_fit <- index_last_obs
       names(new_entry_NA_fit) <- speci_dist
       NA.information[[index_name]][['grad_mu']] <<- c(NA.information[[index_name]][['grad_mu']], new_entry_NA_fit)
@@ -552,10 +547,8 @@ predict_VaR_ES_1_ahead <- function(data,
   # Storing gradiant of mu in other.quantities
   other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- grad_mu
   
-  
   # Calculation of gradient of sigma
   # Function that returns forecasted sigma depending on parameters
-  
   sigma_func <- function(par_vec){
     
     par_list <- as.list(par_vec)
@@ -574,7 +567,7 @@ predict_VaR_ES_1_ahead <- function(data,
     return(sigma)
   }
 
-  # Calculate gradient of sigma_func at coef_opt_vec
+  # Calculate gradient of sigma_func at coef_fit
   grad_sigma <- tryCatch(
     {
       grad(func = sigma_func,
@@ -584,7 +577,7 @@ predict_VaR_ES_1_ahead <- function(data,
     }, error = function(e) {
       cat('\nGradient calculation of sigma did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message: ', e$message)
       
-      # Storing last date of data and reason of NA
+      # Storing last date of data and reason for NA
       new_entry_NA_fit <- index_last_obs
       names(new_entry_NA_fit) <- speci_dist
       NA.information[[index_name]][['grad_sigma']] <<- c(NA.information[[index_name]][['grad_sigma']], new_entry_NA_fit)
@@ -595,7 +588,6 @@ predict_VaR_ES_1_ahead <- function(data,
 
   # Storing gradient of sigma in other.quantities
   other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- grad_sigma
-
   
   # One-step-ahead forecast
   # Return NA if forecasting doesn't work
@@ -614,7 +606,7 @@ predict_VaR_ES_1_ahead <- function(data,
   # If forecast is NA than NAs get returned for VaR and ES forecast   
   if(suppressWarnings(is.na(forecast))){
   
-    # Storing last date of data and reason of NA
+    # Storing last date of data and reason for NA
     new_entry_NA_forecast <- index_last_obs
     names(new_entry_NA_forecast) <- speci_dist
     NA.information[[index_name]][['forecast']] <<- c(NA.information[[index_name]][['forecast']], new_entry_NA_forecast)
@@ -629,10 +621,11 @@ predict_VaR_ES_1_ahead <- function(data,
   
   # Writing message if mu can't be calculated and return NA for VaR and ES
   if(is.nan(mu)){
+    
     # Console message
     cat('\nMu cannot be calculated for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,')\nNAs get returned for VaR and ES\n')
     
-    # Storing last date of data and cause of NA
+    # Storing last date of data and reason for NA
     new_entry_NA_mu <- index_last_obs
     names(new_entry_NA_mu) <- speci_dist
     NA.information[[index_name]][['mu']] <<- c(NA.information[[index_name]][['mu']], new_entry_NA_mu)
@@ -643,10 +636,11 @@ predict_VaR_ES_1_ahead <- function(data,
       
   # Writing message if sigma can't be calculated and return NA for VaR and ES
   if(is.nan(sigma)){
+    
     # Console message
     cat('\nSigma cannot be calculated for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,')\nNAs get returned for VaR and ES\n')
     
-    # Storing last date of data and cause of NA
+    # Storing last date of data and reason for NA
     new_entry_NA_sigma <- index_last_obs
     names(new_entry_NA_sigma) <- speci_dist
     NA.information[[index_name]][['sigma']] <<- c(NA.information[[index_name]][['sigma']], new_entry_NA_sigma)
@@ -659,7 +653,8 @@ predict_VaR_ES_1_ahead <- function(data,
   if(dist_spec == 'empirical'){
  
     # Standardized residuals
-    resid_std <- residuals(fit, standardize = TRUE)
+    resid_std <- residuals(fit,
+                           standardize = TRUE)
     
     # Storing empirical distribution of standardized innovations in global list of other quantities with dates as entry names
     other.quantities[[index_name]][[speci_dist]][['empirical_dist']][[as.character(index_last_obs)]] <<- as.vector(resid_std)
@@ -686,9 +681,10 @@ predict_VaR_ES_1_ahead <- function(data,
     # Calculating ES
     ES <- mu + sigma * mean_resid_ES
 
-    # Change skew and shape with NAs to zoo object and insert empirical as distribution specification
+    # Transform skew, shape and lambda with NAs to zoo object and insert empirical as distribution specification
     skew <- zoo(NA, index_last_obs)
     shape <- zoo(NA, index_last_obs)
+    lambda <- zoo(NA, index_last_obs)
     dist.spec <- zoo('empirical', index_last_obs)
     
     # Combine VaR and ES in one list
@@ -698,6 +694,7 @@ predict_VaR_ES_1_ahead <- function(data,
                        sigma = sigma,
                        skew = skew,
                        shape = shape,
+                       lambda = lambda,
                        dist = dist.spec)
     
     #Return results
@@ -709,7 +706,8 @@ predict_VaR_ES_1_ahead <- function(data,
     q <- qdist(distribution = dist.spec,
                p = p,
                skew = skew,
-               shape = shape)
+               shape = shape,
+               lambda = lambda)
     return(q)
   }
   
@@ -740,7 +738,7 @@ predict_VaR_ES_1_ahead <- function(data,
   # Calculation of one-step-ahead VaR forecast
   VaR <- mu + sigma * q_tolerance_lvl
   
-  # Integrate over inverse cdf: from 0 until tolerance level
+  # Integrate over inverse cdf: from 0 to tolerance level
   # Return NULL if integration doesn't work
   integrated_value <- tryCatch(
     {
@@ -749,7 +747,7 @@ predict_VaR_ES_1_ahead <- function(data,
                               upper = tolerance_lvl)
       
       # Extract value of integration
-      integrated$value
+      integrated[['value']]
       
     }, error = function(e) {
       cat('\nIntegration did not work for one observation (Index:', index_name, '; Variance Specification Nr.:', spec_i, '; Distribution:', dist.spec,'):\nError message', e$message, '\nNA gets returned for ES\n')
@@ -758,15 +756,15 @@ predict_VaR_ES_1_ahead <- function(data,
     }
   )
   
-  # If integrated value is NULL than NA gets returned for ES forecast in combination with forecasted VaR
+  # If integrated value is NULL than NA gets returned for ES forecast together with forecasted VaR
   if(is.null(integrated_value)){
     
-    # Storing last date of data and cause of NA
+    # Storing last date of data and reason for NA
     new_entry_NA_integrated_value <- index_last_obs
     names(new_entry_NA_integrated_value) <- speci_dist
     NA.information[[index_name]][['integrated_value']] <<- c(NA.information[[index_name]][['integrated_value']], new_entry_NA_integrated_value)
     
-    # Storing NAs in other.quantities in cases one part of the function fails
+    # Storing NAs in other.quantities in cases where one part of the function fails
     other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- NA
     other.quantities[[index_name]][[speci_dist]][['grad_mu']][[as.character(index_last_obs)]] <<- NA
     other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- NA
@@ -775,6 +773,7 @@ predict_VaR_ES_1_ahead <- function(data,
     ES <- zoo(NA, index_last_obs)
     skew <- zoo(skew, index_last_obs)
     shape <- zoo(shape, index_last_obs)
+    lambda <- zoo(lambda, index_last_obs)
     dist.spec <- zoo(dist.spec, index_last_obs)
     VaR_and_ES <- list(VaR = VaR,
                        ES = ES,
@@ -782,10 +781,11 @@ predict_VaR_ES_1_ahead <- function(data,
                        sigma = sigma,
                        skew = skew,
                        shape = shape,
+                       lambda = lambda,
                        dist = dist.spec)
     
     # Print date which can't be calculated
-    date <- index(VaR_and_ES$ES)
+    date <- index(VaR_and_ES[['ES']])
     message <- paste0('Preceeding date of date where ES cannot be calculated: ', date, '\n\n')
     cat(message)
     
@@ -796,9 +796,10 @@ predict_VaR_ES_1_ahead <- function(data,
   # Calculation of ES
   ES <- mu + sigma / tolerance_lvl * integrated_value
   
-  # Change skew and shape to zoo object
+  # Transform skew, shape and lambda to zoo object
   skew <- zoo(skew, index_last_obs)
   shape <- zoo(shape, index_last_obs)
+  lambda <- zoo(lambda, index_last_obs)
   dist.spec <- zoo(dist.spec, index_last_obs)
   
   # Combine VaR and ES in one list
@@ -808,8 +809,8 @@ predict_VaR_ES_1_ahead <- function(data,
                      sigma = sigma,
                      skew = skew,
                      shape = shape,
+                     lambda = lambda,
                      dist = dist.spec)
-  
   
   #Return list with VaR and ES forecasts
   return(VaR_and_ES)
@@ -852,7 +853,6 @@ VaR_Kupiec_backtest <- function(exceedences,
   return(results)
 }
 
-
 ############################################################################################
 ###  Christofferson 1 test: Independence of violations                                   ###
 ############################################################################################
@@ -887,7 +887,7 @@ VaR_Christofferson1_backtest <- function(exceedences,
     }
   }
   
-  # Assigning proportion of exceedences if previous observation exceeded / didnt exceed
+  # Assigning proportion of exceedences if previous observation exceeded / didn't exceed
   prop_exceeded <- (n01 + n11) / (n00 + n11 + n10 + n01)
   prop_exceeded11 <- n11 / (n10 + n11)
   prop_exceeded01 <- n01 / (n00 + n01)
@@ -995,6 +995,7 @@ ES_uc_backtest <- function(CumVio,
                            sigma,
                            skew,
                            shape,
+                           lambda,
                            dist){
   
   # Vector with positions which are not NA in CumVio
@@ -1042,7 +1043,7 @@ ES_uc_backtest <- function(CumVio,
     }
     
     if(n_grad != n){
-      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist, ' (', n, ') are different from number of its gradients (', n_grad, ')\n\n'))
+      cat(paste0('\nES UC Backtest: Number of entries in ', index, ' CumVio_', speci_dist, ' (', n, ') are different from number of its gradients without NAs (', n_grad, ')\n\n'))
     }
     
     # Extracting values necessary to calculate R
@@ -1052,6 +1053,7 @@ ES_uc_backtest <- function(CumVio,
     sigma <- sigma[not_na_Cum_Vio]
     skew <- skew[not_na_Cum_Vio]
     shape <- shape[not_na_Cum_Vio]
+    lambda <- lambda[not_na_Cum_Vio]
     dist <- dist[not_na_Cum_Vio]
     
     # In case of empirical distribution, replace the empirical distribution with normal distribution to make robust test feasible (THINK ABOUT THIS, IF IT MAKES SENSE!!!!!!!!!)
@@ -1064,14 +1066,16 @@ ES_uc_backtest <- function(CumVio,
                        mu = 0,
                        sigma = sigma[i],
                        skew = skew[i],
-                       shape = shape[i])
+                       shape = shape[i],
+                       lambda = lambda[i])
       if(eps[i] <= G_q_eps){
         g_d_eps <- ddist(distribution = dist[i],
                          y = eps[i],
                          mu = 0,
                          sigma = sigma[i],
                          skew = skew[i],
-                         shape = shape[i])
+                         shape = shape[i],
+                         lambda = lambda[i])
         R_i <- g_d_eps * ((grad_mu[[i]] + (eps[i] * grad_sigma[[i]])) / sigma[i])
         
         if(!exists('R')){
@@ -1129,6 +1133,7 @@ ES_cc_backtest <- function(CumVio,
                            sigma,
                            skew,
                            shape,
+                           lambda,
                            dist){
   
   # Vector with positions which are not NA in CumVio
@@ -1199,6 +1204,7 @@ ES_cc_backtest <- function(CumVio,
     sigma <- sigma[not_na_Cum_Vio]
     skew <- skew[not_na_Cum_Vio]
     shape <- shape[not_na_Cum_Vio]
+    lambda <- lambda[not_na_Cum_Vio]
     dist <- dist[not_na_Cum_Vio]
     
     # In case of empirical distribution, replace the empirical distribution with normal distribution to make robust test feasible (THINK ABOUT THIS, IF IT MAKES SENSE!!!!!!!!!)
@@ -1217,14 +1223,16 @@ ES_cc_backtest <- function(CumVio,
                          mu = 0,
                          sigma = sigma[i],
                          skew = skew[i],
-                         shape = shape[i])
+                         shape = shape[i],
+                         lambda = lambda[i])
         if(eps[i] <= G_q_eps){
           g_d_eps <- ddist(distribution = dist[i],
                            y = eps[i],
                            mu = 0,
                            sigma = sigma[i],
                            skew = skew[i],
-                           shape = shape[i])
+                           shape = shape[i],
+                           lambda = lambda[i])
           R_j_i <- (H_hut[(i-j)] - (tolerance_lvl / 2)) * g_d_eps * ((grad_mu[[i]] + (eps[i] * grad_sigma[[i]])) / sigma[i])
           
           if(!exists('R_j')){

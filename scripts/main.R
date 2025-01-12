@@ -52,7 +52,7 @@
 # maybe taking previous parameter estimates as staring parameter reduces time a lot
 # taking hybrid solver for all dist and only use other optimizer if hybrid fails
 # First return in input data set has to be NA that the program works correctly
-
+sink('console_messages.txt', split = TRUE)
 #################################################################################
 ####           General set-up                                                ####
 #################################################################################
@@ -68,17 +68,16 @@ if (dev.cur() != 1) {
 cat('\14')
 
 # Loading required libraries
-library(tidyverse)
-library(zoo)
-library(rugarch)
-library(FinTS)
-library(numDeriv)
-library(moments)
-library(tseries)
+library(tidyverse)  # comprehensive package for data manipulation
+library(zoo)        # handling of time series data
+library(rugarch)    # comprehensive package for GARCH modeling and distributions
+library(FinTS)      # used for Arch test
+library(numDeriv)   # calculation of numerical derivatives
+library(moments)    # moment calculation
+library(tseries)    # used for JB test
 
-# Function definition
+# Definition of functions
 source('scripts/functions.R')
-
 
 #################################################################################
 ####           General parameter assignment                                  ####
@@ -106,34 +105,33 @@ tolerance_lvl = 0.05
 ### Sub setting parameters for faster calculations in development period     ###
 ################################################################################
 
-# Number of forecasts
-number_forecasts = 2000
+# Number of forecasts (comment out if not needed)
+number_forecasts = 250
 
-# Input data - has to be higher than parameter window_width (comment out if not needed) (can be set directly or using parameter number_forecasts)
-#data_include = 1:(window_width+1+number_forecasts)
+# Input data - has to be higher than parameter window_width (could also be set directly, but setting it with number_forecasts is preferred) (comment out if not needed)
+data_include = 1:(window_width+1+number_forecasts)
 
-# Indices (comment out if not needed)
-# Be careful when simulation = TRUE because indices are also subset then
-#index_include = c(1)
+# Indices to include (comment out if not needed)
+index_include = c(1,4)
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(1)
+varspec_include = c(1,2)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1)
+dist_include = c(1,5,7)
 
-# Should real data or simulated data be used? TRUE for simulated data
-simulation = TRUE
+# Should real data or simulated data be used? TRUE for simulated data (needs to be set)
+simulation = FALSE
 
-# Number of simulations (specifiy if simulation = TRUE)
-number_simulations = 3
+# Number of simulations (specify if simulation = TRUE) (comment out if not needed)
+#number_simulations = 2
 
-# Execution of VaR and ES forecast
-# TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run)
-# FALSE: old results are being loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
+# Execution of VaR and ES forecast (has to be set)
+# TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run with full data set)
+# FALSE: old results are loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
 execution_of_VaR_ES_forecasting = TRUE
 
-# Execution of VaR and ES Backtests
+# Execution of VaR and ES Backtests (has to be set)
 execute_Backtest = TRUE
 
 #################################################################################
@@ -157,8 +155,7 @@ if(simulation){
                  'GLD')
     }
 
-
-# List of all variance specifications (ADD)
+# List of all variance specifications
 var.spec.list <- list(spec1 = list(model = 'sGARCH',
                                    garchOrder = c(arch, garch)),
                       spec2 = list(model = 'eGARCH',
@@ -183,14 +180,7 @@ var.spec.list <- list(spec1 = list(model = 'sGARCH',
 mean.spec <- list(armaOrder = c(ar,ma),
                   include.mean = TRUE)
 
-# Constant mean for data without significant autocorrelation (random walk with potential drift)
-# AR AND MA TERMS WILL PROBABLY NOT BE USED 
-# ARMA(1,1) as mean model for data with significant autocorrelation (based on Ljung-Box-Test)
-# !! for text: arma model first tried -> lead in some cases to unreasonable unstable mean estimates -> constant mean is theoretical explainable and also act and pacf show that there doesnt seem to be strucutal autocorrelation which adds value to estimation
-# coefficient usually equal each other out (e.g. positive ar and negative ma)
-# show plot of mean as proof??
-
-# List of all distribution assumptions
+# List of all possible distribution assumptions in rugarch package
 dist.spec.list <-  list(norm = 'norm',      #1
                         std = 'std',        #2
                         ged = 'ged',        #3
@@ -317,4 +307,4 @@ ggplot(data =  GLD[-1:-(window_width + 2),],
                      name = "Exceeded VaR",
                      labels = c("No", "Yes"))
 }
-
+sink()

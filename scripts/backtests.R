@@ -89,6 +89,7 @@ execution_of_Backtests <- function(){
                                      sigma = index_data[[paste0('sigma_', speci_dist)]],
                                      skew = index_data[[paste0('skew_', speci_dist)]],
                                      shape = index_data[[paste0('shape_', speci_dist)]],
+                                     lambda = index_data[[paste0('lambda_', speci_dist)]],
                                      dist = index_data[[paste0('dist_', speci_dist)]])
         ES_UC_results_robust[['U']] <- c(ES_UC_results_robust[['U']], col_result[['U']])
         ES_UC_results_robust[['p']] <- c(ES_UC_results_robust[['p']], col_result[['p']])
@@ -118,6 +119,7 @@ execution_of_Backtests <- function(){
                                      sigma = index_data[[paste0('sigma_', speci_dist)]],
                                      skew = index_data[[paste0('skew_', speci_dist)]],
                                      shape = index_data[[paste0('shape_', speci_dist)]],
+                                     lambda = index_data[[paste0('lambda_', speci_dist)]],
                                      dist = index_data[[paste0('dist_', speci_dist)]])
         ES_CC_results_robust[['C']] <- c(ES_CC_results_robust[['C']], col_result[['C']])
         ES_CC_results_robust[['p']] <- c(ES_CC_results_robust[['p']], col_result[['p']])

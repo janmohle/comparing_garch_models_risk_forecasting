@@ -1,0 +1,7 @@
+Current iteration:  Index: sim1 ; Variance Specification Nr.: 1 ; Distribution: norm 
+Iteration took 0.4074372 minutes to run
+Current iteration:  Index: sim2 ; Variance Specification Nr.: 1 ; Distribution: norm 
+Iteration took 0.3849484 minutes to run
+
+Current iteration:  Index: sim2 ; Variance Specification Nr.: 1 ; Distribution: norm 
+Iteration took 0.3849484 minutes to run

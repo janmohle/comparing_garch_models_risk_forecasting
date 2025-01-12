@@ -9,11 +9,13 @@ for(i in 1:number_simulations){
   garchspec <- ugarchspec(variance.model = list(model = 'sGARCH',
                                                 garchOrder = c(1,1)),
                           mean.model = list(armaOrder = c(0,0)),
-                          distribution.model = 'norm',
+                          distribution.model = 'sstd',
                           fixed.pars = list(mu = 0.00025,
                                             omega = 0.00005,
                                             alpha1 = 0.1,
-                                            beta1 = 0.85)
+                                            beta1 = 0.85,
+                                            skew = -1,
+                                            shape = 5)
   )
   
   # Simulation
