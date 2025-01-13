@@ -52,6 +52,7 @@
 # maybe taking previous parameter estimates as staring parameter reduces time a lot
 # taking hybrid solver for all dist and only use other optimizer if hybrid fails
 # First return in input data set has to be NA that the program works correctly
+# main processing time consumers are optimization, gradiant calculation and integration. Only optimization can really be adjusted. A simple way would be to adjust n_compl_opti
 sink('console_messages.txt', split = TRUE)
 #################################################################################
 ####           General set-up                                                ####
@@ -66,6 +67,9 @@ if (dev.cur() != 1) {
   dev.off()
 }
 cat('\14')
+
+# Restore packages of renv
+renv::restore()
 
 # Loading required libraries
 library(tidyverse)  # comprehensive package for data manipulation
@@ -112,13 +116,13 @@ number_forecasts = 250
 data_include = 1:(window_width+1+number_forecasts)
 
 # Indices to include (comment out if not needed)
-index_include = c(1,4)
+index_include = c(1)
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(1,2)
+varspec_include = c(1)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1,5,7)
+dist_include = c(1)
 
 # Should real data or simulated data be used? TRUE for simulated data (needs to be set)
 simulation = FALSE
@@ -131,8 +135,12 @@ simulation = FALSE
 # FALSE: old results are loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
 execution_of_VaR_ES_forecasting = TRUE
 
+# Parameter which sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit
+# (This parameter is the main time saver, as other parts that take a siginficant part of the time are grandiant calculation and integration where processing time cannot be reduced)
+n_compl_opti = 100
+
 # Execution of VaR and ES Backtests (has to be set)
-execute_Backtest = TRUE
+execute_Backtest = FALSE
 
 #################################################################################
 ####           General model specification set-up                            ####

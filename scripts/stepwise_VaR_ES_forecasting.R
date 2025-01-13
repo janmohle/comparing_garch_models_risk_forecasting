@@ -74,7 +74,8 @@ execution_of_VaR_ES_forecasting_function <- function(){
                                                                              tolerance_lvl = tolerance_lvl,
                                                                              index_name = index_name,
                                                                              spec_i = spec_i,
-                                                                             dist_spec = dist_spec),
+                                                                             dist_spec = dist_spec,
+                                                                             n_compl_opti = n_compl_opti),
                                     align = 'right',
                                     coredata = FALSE)
         

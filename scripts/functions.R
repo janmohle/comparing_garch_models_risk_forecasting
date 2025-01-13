@@ -292,7 +292,8 @@ predict_VaR_ES_1_ahead <- function(data,
                                    tolerance_lvl,
                                    index_name,
                                    spec_i,
-                                   dist_spec){
+                                   dist_spec,
+                                   n_compl_opti){
   
   # Stopping function if data is not zoo object
   if(!is.zoo(data)){
@@ -373,20 +374,32 @@ predict_VaR_ES_1_ahead <- function(data,
     coef_prev_fit <<- list()
   }
 
-  # Variable to control that every 100th window shift and if optimization of previous run of same model failed, the global optimizer in combination with the local optimizer is used. In other cases the hybrid one is used and only in cases where this fails, the global local combination is used
+  # Variable to control that every n_compl_opti th window shift and if optimization of previous run of same model failed, the global optimizer in combination with the local optimizer is used. In other cases the hybrid one is used and only in cases where this fails, the global local combination is used
   if(!exists('num_window_shift')){
     num_window_shift <<- 0
   } else {
     num_window_shift <<- num_window_shift + 1
   }
+  mod_num_window_shift <- num_window_shift %% n_compl_opti
 
-  mod_num_window_shift <- num_window_shift %% 100
-  
   # Specifying GARCH model
   spec <- ugarchspec(variance.model = var.spec,
                      mean.model = mean.spec,
                      distribution.model = dist.spec,
                      start.pars = coef_prev_fit)
+  
+  
+  
+  # DELETE
+  end_rest <<- Sys.time()
+  if(exists('time_rest')){
+    time_rest <<- c(time_rest, as.numeric(end_rest - start_rest, units = 'secs'))
+  } else{
+    time_rest <<- vector()
+  }
+
+  start_opti <<- Sys.time()
+  
   
   # Fitting GARCH model
   # Return NA if fitting doesn't work
@@ -468,6 +481,21 @@ predict_VaR_ES_1_ahead <- function(data,
     )
   }
 
+  
+  
+  # DELETE
+  
+  end_opti <<- Sys.time()
+  if(exists('time_opti')){
+    time_opti <<- c(time_opti, as.numeric(end_opti - start_opti, units = 'secs'))
+  } else{
+    time_opti <<- as.numeric(end_opti - start_opti, units = 'secs')
+  }
+
+  start_rest <<- Sys.time()
+  
+  
+  
   # If fit is NA than NAs get returned for VaR and ES forecast
   if(suppressWarnings(is.na(fit))){
     
@@ -505,6 +533,12 @@ predict_VaR_ES_1_ahead <- function(data,
   # Storing parameter estimates and covariance matrix of parameter estimates for every forecast
   other.quantities[[index_name]][[speci_dist]][['coef_est']][[as.character(index_last_obs)]] <<- coef_fit
   other.quantities[[index_name]][[speci_dist]][['cov_matrix']][[as.character(index_last_obs)]] <<- vcov(fit)
+  
+  
+  # DELETE
+  start_grad <- Sys.time()
+  
+  
   
   # Calculation of gradient of mu
   # Function that returns forecasted mu depending on parameters
@@ -586,6 +620,16 @@ predict_VaR_ES_1_ahead <- function(data,
     }
   )
 
+  
+  # DELETE
+  end_grad <- Sys.time()
+  if(exists('time_grad')){
+    time_grad <<- c(time_grad, as.numeric(end_grad-start_grad, units='secs'))
+  } else{
+    time_grad<<-as.numeric(end_grad-start_grad, units='secs')
+  }
+  
+  
   # Storing gradient of sigma in other.quantities
   other.quantities[[index_name]][[speci_dist]][['grad_sigma']][[as.character(index_last_obs)]] <<- grad_sigma
   
@@ -738,6 +782,13 @@ predict_VaR_ES_1_ahead <- function(data,
   # Calculation of one-step-ahead VaR forecast
   VaR <- mu + sigma * q_tolerance_lvl
   
+  
+  
+  # DELETE
+  start_integrate <- Sys.time()
+  
+  
+  
   # Integrate over inverse cdf: from 0 to tolerance level
   # Return NULL if integration doesn't work
   integrated_value <- tryCatch(
@@ -755,6 +806,16 @@ predict_VaR_ES_1_ahead <- function(data,
       return(NULL)
     }
   )
+  
+  
+  # DELETE
+  end_integrate <- Sys.time()
+  if(exists('time_integrate')){
+    time_integrate <<- c(time_integrate, as.numeric(end_integrate-start_integrate, units='secs'))
+  }else{
+    time_integrate<<-as.numeric(end_integrate-start_integrate, units='secs')
+  }
+  
   
   # If integrated value is NULL than NA gets returned for ES forecast together with forecasted VaR
   if(is.null(integrated_value)){
