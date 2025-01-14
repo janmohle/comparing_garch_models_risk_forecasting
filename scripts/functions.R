@@ -16,7 +16,7 @@ price_return_plots_func <- function(index){
                                                     y = Price)) +
     geom_line(na.rm = TRUE, size = 0.5) +
     labs(title = paste0('Price ',index)) +
-    theme(plot.title = element_text(hjust = 0.1),
+    theme(plot.title = element_text(hjust = 0.5),
           panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
           axis.line = element_line(color = 'black'))
@@ -292,7 +292,8 @@ predict_VaR_ES_1_ahead <- function(data,
                                    tolerance_lvl,
                                    index_name,
                                    spec_i,
-                                   dist_spec){
+                                   dist_spec,
+                                   n_compl_opti){
   
   # Stopping function if data is not zoo object
   if(!is.zoo(data)){
@@ -373,14 +374,14 @@ predict_VaR_ES_1_ahead <- function(data,
     coef_prev_fit <<- list()
   }
 
-  # Variable to control that every 100th window shift and if optimization of previous run of same model failed, the global optimizer in combination with the local optimizer is used. In other cases the hybrid one is used and only in cases where this fails, the global local combination is used
+  # Variable to control that every n_compl_opti th window shift and if optimization of previous run of same model failed, the global optimizer in combination with the local optimizer is used. In other cases the hybrid one is used and only in cases where this fails, the global local combination is used
   if(!exists('num_window_shift')){
     num_window_shift <<- 0
   } else {
     num_window_shift <<- num_window_shift + 1
   }
 
-  mod_num_window_shift <- num_window_shift %% 100
+  mod_num_window_shift <- num_window_shift %% n_compl_opti
   
   # Specifying GARCH model
   spec <- ugarchspec(variance.model = var.spec,

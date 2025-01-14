@@ -52,6 +52,7 @@
 # maybe taking previous parameter estimates as staring parameter reduces time a lot
 # taking hybrid solver for all dist and only use other optimizer if hybrid fails
 # First return in input data set has to be NA that the program works correctly
+# main processing time consumers are optimization, gradiant calculation and integration. Only optimization can really be adjusted. A simple way would be to adjust n_compl_opti
 sink('console_messages.txt', split = TRUE)
 #################################################################################
 ####           General set-up                                                ####
@@ -66,6 +67,9 @@ if (dev.cur() != 1) {
   dev.off()
 }
 cat('\14')
+
+# Restore packages of renv
+renv::restore()
 
 # Loading required libraries
 library(tidyverse)  # comprehensive package for data manipulation
@@ -106,33 +110,37 @@ tolerance_lvl = 0.05
 ################################################################################
 
 # Number of forecasts (comment out if not needed)
-number_forecasts = 250
+number_forecasts = 120
 
 # Input data - has to be higher than parameter window_width (could also be set directly, but setting it with number_forecasts is preferred) (comment out if not needed)
 data_include = 1:(window_width+1+number_forecasts)
 
 # Indices to include (comment out if not needed)
-index_include = c(1,4)
+#index_include = c(1)
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(1,2)
+varspec_include = c(-10,-11)
 
 # Distribution assumptions (comment out if not needed)
-dist_include = c(1,5,7)
+dist_include = c(1:7,10,11)
 
 # Should real data or simulated data be used? TRUE for simulated data (needs to be set)
 simulation = FALSE
 
 # Number of simulations (specify if simulation = TRUE) (comment out if not needed)
-#number_simulations = 2
+#number_simulations = 157
 
 # Execution of VaR and ES forecast (has to be set)
 # TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple hours to run with full data set)
 # FALSE: old results are loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
 execution_of_VaR_ES_forecasting = TRUE
 
+# Parameter which sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit
+# (This parameter is the main time saver, as other parts that take a siginficant part of the time are grandiant calculation and integration where processing time cannot be reduced)
+n_compl_opti = 100
+
 # Execution of VaR and ES Backtests (has to be set)
-execute_Backtest = TRUE
+execute_Backtest = FALSE
 
 #################################################################################
 ####           General model specification set-up                            ####
@@ -156,25 +164,39 @@ if(simulation){
     }
 
 # List of all variance specifications
-var.spec.list <- list(spec1 = list(model = 'sGARCH',
+var.spec.list <- list(spec1 = list(model = 'sGARCH',              # ARCH (set arch correctly)
+                                   garchOrder = c(5, 0)),
+                      spec2 = list(model = 'sGARCH',              # GARCH
                                    garchOrder = c(arch, garch)),
-                      spec2 = list(model = 'eGARCH',
+                      spec3 = list(model = 'eGARCH',              # EGARCH
                                    garchOrder = c(arch, garch)),
-                      spec3 = list(model = 'gjrGARCH',
+                      spec4 = list(model = 'gjrGARCH',            # GJR-GARCH
                                    garchOrder = c(arch, garch)),
-                      spec4 = list(model = 'apARCH',
-                                   garchOrder = c(arch, garch)),
-                      spec5 = list(model = 'csGARCH',
-                                   garchOrder = c(arch, garch)),
-                      spec6 = list(model = 'fGARCH',
+                      spec5 = list(model = 'fGARCH',              # TGARCH
                                    garchOrder = c(arch, garch),
-                                   submodel = 'NAGARCH'),
-                      spec7 = list(model = 'fGARCH',
+                                   submodel = 'TGARCH'),
+                      spec6 = list(model = 'fGARCH',              # FGARCH
                                    garchOrder = c(arch, garch),
                                    submodel = 'ALLGARCH'),
-                      spec8 = list(model = 'fGARCH',
+                      spec7 = list(model = 'apARCH',              # APARCH
+                                   garchOrder = c(arch, garch)),
+                      spec8 = list(model = 'fGARCH',              # NGARCH
                                    garchOrder = c(arch, garch),
-                                   submodel = 'NGARCH'))
+                                   submodel = 'NGARCH'),
+                      spec9 = list(model = 'csGARCH',             # CGARCH
+                                   garchOrder = c(arch, garch)),
+                      spec10 = list(model = 'realGARCH',          # realized GARCH: ugarchfit-->error: you must supply the realized volatility (realizedVol) for the realGARCH model
+                                    garchOrder = c(arch, garch)),
+                      spec11 = list(model = 'fiGARCH',            # FIGARCH  gradient calculations and forecasting does not work -> dont use!
+                                    garchOrder = c(arch, garch)),
+                      spec12 = list(model = 'fGARCH',             # AVGARCH
+                                    garchOrder = c(arch, garch),
+                                    submodel = 'AVGARCH'),
+                      spec13 = list(model = 'fGARCH',             # NAGARCH
+                                    garchOrder = c(arch, garch),
+                                    submodel = 'NAGARCH'),
+                      spec14 = list(model = 'iGARCH',             # IGARCH
+                                    garchOrder = c(arch, garch)))
 
 # Mean specification
 mean.spec <- list(armaOrder = c(ar,ma),
