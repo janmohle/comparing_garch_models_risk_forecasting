@@ -166,7 +166,6 @@ execution_of_VaR_ES_forecasting_function <- function(){
         data[[colname_result]] <- ifelse(data$Return <= data[[colname_test]], 1, 0)
       }
     }
-    
     # Computing cumulative exceedences for ES backtesting (values from run to run could vary slightly because of distribution parameter estimation errors due to approximation in numerical optimization!)
     dist.spec.names.vec <- unlist(dist.spec.list)
     var.spec.names.vec <- names(var.spec.list)
@@ -229,7 +228,20 @@ execution_of_VaR_ES_forecasting_function <- function(){
             }
             
             # Calculate cumulative violations
-            CumVio <- (1 / tolerance_lvl) * (tolerance_lvl - u) * ifelse(u <= tolerance_lvl, 1, 0)
+            CumVio <- tryCatch(
+              {
+                (1 / tolerance_lvl) * (tolerance_lvl - u) * ifelse(u <= tolerance_lvl, 1, 0)
+              }, error = function(e){
+                cat('\nCumVio calculation did not work for one observation (Index:', index, '; Variance Specification Nr.:', var, '; Distribution:', dist,'):\nError message: ', e$message, '\nNAs get returned for CumVio\n')
+                
+                # Storing last date of data and reason for NA
+                new_entry_NA_fit <- data[['Date']][i]
+                names(new_entry_NA_fit) <- var_dist
+                NA.information[[index]][['CumVio']] <<- c(NA.information[[index]][['CumVio']], new_entry_NA_fit)
+                
+                return(NA)
+              }
+            )
           }
           
           # Assign u and CumVio to current column with correct name

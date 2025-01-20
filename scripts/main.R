@@ -3,63 +3,39 @@
 #################################################################################
 
 #DEFINITLY:
-
 # Recheck whole process and delete parts which are not needed anymore
 
-# Reconcider way how to test model with historical distribution
-# In the gradient calculation of mu and sigma, should it really be the forecasted value or the fitted value??? -> probably yes
-
-# continue insert NA into other.quantities done
+# All for ES Backtest:
+# In gradient calculation of mu and sigma, should it really be the forecasted value or the fitted value??? -> probably forecasted value
 # handle errors in gradient calculation -> improve paramters of grad(): consider first richardson and if this fails then simple
+# Check that ES Backtests handle NAs in other.quantities correctly (historcal distribtions maybe different?)
+# Check if backtest for historical distribution makes sense
 
-# implement corrected version of ES backtests (handle potential errors in gradient calculation first and think about how to deal with NA in other.quantities) (special case is empirical distribution)
-
-# Check if backtest for empirical violations makes sense
-
-# (Investigate error if Execution is TRUE for real data)
 
 # NOTES:
-# old2 are good data sets
-
-# NOT NEEDED ANYMORE IF NO INTERPOLATION:
-# Implement way to handle remaining NAs and give out more information where values got interpolated!!! -> vector with date as value and column name as entry name? different vectors for fitting error, integration error, etc.
-# Join vectors with NA information with final table for lead and receive correct date where NAs are interpolated
 
 # MAYBE:
+# Include other ES Backtests
 # Create vector to store iteration time of each iteration
 # Handle convergence information
 # Include loss function for comparison if backtest don't come to satisfactory result
-# Make simulation more dynamic in terms of specifications
-
-
-# TEST OF WHOLE MODEL:
-# Test multiple simulations and check if results are logical
-# Test different parameters of program
 
 # CHALLANGES:
 
 # IDEAS:
 
-# LATER:
-# Recheck all needed packages
-
-
-# Recently changed:
-
-
 # NOTE:
 # using combination of first global and then local optimiser leads to more accurat results but increases processing time a lot
-# maybe taking previous parameter estimates as staring parameter reduces time a lot
-# taking hybrid solver for all dist and only use other optimizer if hybrid fails
+# Using paramter of previouse shift as starting paramter reduces optimization time a lot
 # First return in input data set has to be NA that the program works correctly
 # main processing time consumers are optimization, gradiant calculation and integration. Only optimization can really be adjusted. A simple way would be to adjust n_compl_opti
-sink('console_messages.txt', split = TRUE)
+
 #################################################################################
 ####           General set-up                                                ####
 #################################################################################
 
-# When using code for the first time, use renv::restore() to install all packages according to the renv.lock file!
-# A dialog will pop up and ask if all listed packages should be installed. Enter 'Y' in console. Packages are then installed with correct version.
+# Open connection to write console messages into a txt file
+sink('console_messages.txt', split = TRUE)
 
 # Initial cleaning
 rm(list = ls())
@@ -69,6 +45,7 @@ if (dev.cur() != 1) {
 cat('\14')
 
 # Restore packages of renv
+# If library not synchronized to lockfile, a dialog pops up and asks if all listed packages should be installed. Enter 'Y' in console. Packages are then installed with correct version.
 renv::restore()
 
 # Loading required libraries
@@ -116,10 +93,10 @@ number_forecasts = 120
 data_include = 1:(window_width+1+number_forecasts)
 
 # Indices to include (comment out if not needed)
-#index_include = c(1)
+#index_include = 1#c(1,2)
 
 # Variance specifications (comment out if not needed)
-varspec_include = c(-10,-11)
+varspec_include = c(-10, -11)
 
 # Distribution assumptions (comment out if not needed)
 dist_include = c(1:7,10,11)
@@ -137,7 +114,7 @@ execution_of_VaR_ES_forecasting = TRUE
 
 # Parameter which sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit
 # (This parameter is the main time saver, as other parts that take a siginficant part of the time are grandiant calculation and integration where processing time cannot be reduced)
-n_compl_opti = 100
+n_compl_opti = 250
 
 # Execution of VaR and ES Backtests (has to be set)
 execute_Backtest = FALSE
@@ -175,12 +152,12 @@ var.spec.list <- list(spec1 = list(model = 'sGARCH',              # ARCH (set ar
                       spec5 = list(model = 'fGARCH',              # TGARCH
                                    garchOrder = c(arch, garch),
                                    submodel = 'TGARCH'),
-                      spec6 = list(model = 'fGARCH',              # FGARCH
+                      spec6 = list(model = 'fGARCH',              # FGARCH: Leads to either 0 or infinite sigma with norm, rest no problem
                                    garchOrder = c(arch, garch),
                                    submodel = 'ALLGARCH'),
-                      spec7 = list(model = 'apARCH',              # APARCH
+                      spec7 = list(model = 'apARCH',              # APARCH: Leads to either 0 or infinite sigma with norm, rest no problem
                                    garchOrder = c(arch, garch)),
-                      spec8 = list(model = 'fGARCH',              # NGARCH
+                      spec8 = list(model = 'fGARCH',              # NGARCH: Leads to either 0 or infinite sigma with norm, rest no problem
                                    garchOrder = c(arch, garch),
                                    submodel = 'NGARCH'),
                       spec9 = list(model = 'csGARCH',             # CGARCH
@@ -317,16 +294,18 @@ if(plotting_1){
 plotting_2 = F
 if(plotting_2){
 # Nice plot of VaR and ES for WIG spec2 sged
-ggplot(data =  GLD[-1:-(window_width + 2),],
+ggplot(data =  data_out[-1:-(window_width + 2),],
        mapping = aes(x = Date,
                      y = Return)) +
-  geom_point(aes(colour = as.factor(Exceeded_VaR_spec8_sged))) +
-  geom_line(aes(y = VaR_spec8_sged),
+  geom_point(aes(colour = as.factor(Exceeded_VaR_spec14_norm))) +
+  geom_line(aes(y = VaR_spec14_norm),
             col = 'orange') +
-  geom_line(aes(y = ES_spec8_sged),
+  geom_line(aes(y = ES_spec14_norm),
             col = 'purple') +
   scale_color_manual(values = c("1" = "red", "0" = "black"),
                      name = "Exceeded VaR",
                      labels = c("No", "Yes"))
 }
+
+# Close connection to txt file
 sink()

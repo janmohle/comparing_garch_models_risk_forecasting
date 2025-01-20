@@ -320,7 +320,8 @@ predict_VaR_ES_1_ahead <- function(data,
                                           q_tolerance_lvl = vector(),
                                           integrated_value = vector(),
                                           grad_mu = vector(),
-                                          grad_sigma = vector())
+                                          grad_sigma = vector(),
+                                          CumVio = vector())
   }
   
   # Store index of last obs
