@@ -10,7 +10,7 @@
 # handle errors in gradient calculation -> improve paramters of grad(): consider first richardson and if this fails then simple
 # Check that ES Backtests handle NAs in other.quantities correctly (historcal distribtions maybe different?)
 # Check if backtest for historical distribution makes sense
-
+# Include other ES Backtests from esback package
 
 # NOTES:
 
@@ -93,7 +93,7 @@ number_forecasts = 120
 data_include = 1:(window_width+1+number_forecasts)
 
 # Indices to include (comment out if not needed)
-#index_include = 1#c(1,2)
+index_include = c(1,2)
 
 # Variance specifications (comment out if not needed)
 varspec_include = c(-10, -11)
@@ -112,12 +112,18 @@ simulation = FALSE
 # FALSE: old results are loaded from csv files in output - not recommended to use with simulated data - index_include specifies which index data is loaded
 execution_of_VaR_ES_forecasting = TRUE
 
-# Parameter which sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit
-# (This parameter is the main time saver, as other parts that take a siginficant part of the time are grandiant calculation and integration where processing time cannot be reduced)
-n_compl_opti = 250
+# Parameter which sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit (has to be set)
+# In cases where new_coef_est_counter = 1, this parameter has no effect
+n_compl_opti = 20
+
+# Parameter to set number of times after which fitting is executed without paramter of previous run. If it is 1, it makes n_compl_opti ineffective.(has to be set)
+new_coef_est_counter = 1
 
 # Execution of VaR and ES Backtests (has to be set)
 execute_Backtest = FALSE
+
+# Plot all calculated models (has to be set)
+plot_all_calc_models = TRUE
 
 #################################################################################
 ####           General model specification set-up                            ####
@@ -294,17 +300,59 @@ if(plotting_1){
 plotting_2 = F
 if(plotting_2){
 # Nice plot of VaR and ES for WIG spec2 sged
-ggplot(data =  data_out[-1:-(window_width + 2),],
+ggplot(data =  DAX[-1:-(window_width + 2),],
        mapping = aes(x = Date,
                      y = Return)) +
-  geom_point(aes(colour = as.factor(Exceeded_VaR_spec14_norm))) +
-  geom_line(aes(y = VaR_spec14_norm),
+  geom_point(aes(colour = as.factor(Exceeded_VaR_spec8_norm))) +
+  geom_line(aes(y = VaR_spec8_norm),
             col = 'orange') +
-  geom_line(aes(y = ES_spec14_norm),
+  geom_line(aes(y = ES_spec8_norm),
             col = 'purple') +
   scale_color_manual(values = c("1" = "red", "0" = "black"),
                      name = "Exceeded VaR",
                      labels = c("No", "Yes"))
+}
+
+VaR_ES_plot <- list(DAX = list(),
+                    WIG = list(),
+                    BTC = list(),
+                    GLD = list())
+
+# Plot all calculated models if plot_all_calc_models = TRUE
+if(plot_all_calc_models){
+  
+  VaR_ES_plot <- list()
+  
+  for(index in indices){
+    
+    index_data <- get(index)
+    
+    for(speci in names(var.spec.list)){
+      for(dist in names(dist.spec.list)){
+        
+        data <- data.frame(Date = index_data[['Date']],
+                           Return = index_data[['Return']],
+                           Exceeded_VaR = index_data[[paste0('Exceeded_VaR_', speci, '_', dist)]],
+                           VaR = index_data[[paste0('VaR_', speci, '_', dist)]],
+                           ES = index_data[[paste0('ES_', speci, '_', dist)]])
+        
+        VaR_ES_plot[[index]][[paste0(speci, '_', dist)]] <- ggplot(data =  data[-1:-(window_width + 2),],
+                                                                   mapping = aes(x = Date,
+                                                                                 y = Return)) +
+          geom_point(aes(colour = as.factor(Exceeded_VaR))) +
+          geom_line(aes(y = VaR),
+                    col = 'orange') +
+          geom_line(aes(y = ES),
+                    col = 'purple') +
+          scale_color_manual(values = c("1" = "red", "0" = "black"),
+                             name = "Exceeded VaR",
+                             
+                             labels = c("No", "Yes")) +
+          labs(title = paste0('VaR and ES vs historical returns: ', speci, '_', dist)) +
+          theme(plot.title = element_text(hjust = 0.5))
+      }
+    }
+  }
 }
 
 # Close connection to txt file

@@ -369,20 +369,25 @@ predict_VaR_ES_1_ahead <- function(data,
     # Return VaR and ES
     return(VaR_and_ES)
   }
+  
+  # Counter counts number of runs of one model and is used to decide based on new_coef_est_counter whether parameters of previous run should be used as starting parameters for current run or not
+  if(!exists('new_coef_est')){
+    new_coef_est <<- 0
+  } else {
+    new_coef_est <<- new_coef_est + 1
+  }
 
-  # If no coefficient from previous run existent, an empty list is assigned (happens in initial run of rolling window and if fitting of previous run of same model failed)
-  if(!exists('coef_prev_fit')){
+  # If no coefficient from previous run existent or new_coef_est has reached a multiple of new_coef_est_counter, an empty list is assigned as starting parameter
+  if(!exists('coef_prev_fit') | new_coef_est %% new_coef_est_counter == 0){
     coef_prev_fit <<- list()
   }
 
-  # Variable to control that every n_compl_opti th window shift and if optimization of previous run of same model failed, the global optimizer in combination with the local optimizer is used. In other cases the hybrid one is used and only in cases where this fails, the global local combination is used
+  # Variable to control that every n_compl_opti'th window shift and if optimization of previous run of same model failed, the global optimizer in combination with the local optimizer is used. In other cases the hybrid one is used and only in cases where this fails, the global-local-combination is used
   if(!exists('num_window_shift')){
     num_window_shift <<- 0
-  } else {
+    } else {
     num_window_shift <<- num_window_shift + 1
-  }
-
-  mod_num_window_shift <- num_window_shift %% n_compl_opti
+    }
   
   # Specifying GARCH model
   spec <- ugarchspec(variance.model = var.spec,
@@ -392,8 +397,7 @@ predict_VaR_ES_1_ahead <- function(data,
   
   # Fitting GARCH model
   # Return NA if fitting doesn't work
-  if(mod_num_window_shift != 0){
-    
+  if(num_window_shift %% n_compl_opti != 0 | new_coef_est_counter == 1){
     # More efficient and faster solver, since solnp is tried first with parameters of previous window as starting parameters (hybrid tries: solnp -> nlminb -> gosolnp -> nloptr)
     # solver.control specified for gosolnp and nloptr which are used if previous optimizer fail
     fit <- tryCatch(
@@ -418,8 +422,7 @@ predict_VaR_ES_1_ahead <- function(data,
     fit <- NA
   }
   
-  if(suppressWarnings(is.na(fit)) | mod_num_window_shift == 0){
- 
+  if(suppressWarnings(is.na(fit))){
     # Optimization routine first searches with global solver for global optima (to not be stuck in local optima which is not global optima) and then uses a local solver for fine-tuning
     complex_ugarchfit <- function(spec,
                                   data,
@@ -454,6 +457,11 @@ predict_VaR_ES_1_ahead <- function(data,
       return(local_fine_tuned_fit)
     }
     
+    # Specifying GARCH model without start.pars
+    spec <- ugarchspec(variance.model = var.spec,
+                       mean.model = mean.spec,
+                       distribution.model = dist.spec)
+    
     # Execute more complex optimization routine
     fit <- tryCatch(
       {
@@ -473,15 +481,16 @@ predict_VaR_ES_1_ahead <- function(data,
   # If fit is NA than NAs get returned for VaR and ES forecast
   if(suppressWarnings(is.na(fit))){
     
-    # Additionally, coef_prev_fit and num_window_shift are removed to start next iteration with more complex solver
-    rm(coef_prev_fit,
-       num_window_shift,
-       envir = .GlobalEnv)
-    
     # Storing last date of data and reason for NA
     new_entry_NA_fit <- index_last_obs
     names(new_entry_NA_fit) <- speci_dist
     NA.information[[index_name]][['fit']] <<- c(NA.information[[index_name]][['fit']], new_entry_NA_fit)
+    
+    # Additionally, coef_prev_fit, num_window_shift and new_coef_est are removed to start next iteration with more complex solver if new_coef_est_counter is not 1
+    rm(coef_prev_fit,
+       num_window_shift,
+       new_coef_est,
+       envir = .GlobalEnv)
     
     # Returning NAs for VaR and ES
     return(return_na_VaR_ES(speci_dist))
@@ -613,6 +622,12 @@ predict_VaR_ES_1_ahead <- function(data,
     names(new_entry_NA_forecast) <- speci_dist
     NA.information[[index_name]][['forecast']] <<- c(NA.information[[index_name]][['forecast']], new_entry_NA_forecast)
     
+    # Additionally, coef_prev_fit, num_window_shift and new_coef_est are removed to start next iteration with more complex solver if new_coef_est_counter is not 1
+    rm(coef_prev_fit,
+       num_window_shift,
+       new_coef_est,
+       envir = .GlobalEnv)
+    
     # Returning NAs for VaR and ES
     return(return_na_VaR_ES(speci_dist))
   }
@@ -632,6 +647,12 @@ predict_VaR_ES_1_ahead <- function(data,
     names(new_entry_NA_mu) <- speci_dist
     NA.information[[index_name]][['mu']] <<- c(NA.information[[index_name]][['mu']], new_entry_NA_mu)
     
+    # Additionally, coef_prev_fit, num_window_shift and new_coef_est are removed to start next iteration with more complex solver if new_coef_est_counter is not 1
+    rm(coef_prev_fit,
+       num_window_shift,
+       new_coef_est,
+       envir = .GlobalEnv)
+    
     # Returning NAs for VaR and ES
     return(return_na_VaR_ES(speci_dist))
   }
@@ -646,6 +667,12 @@ predict_VaR_ES_1_ahead <- function(data,
     new_entry_NA_sigma <- index_last_obs
     names(new_entry_NA_sigma) <- speci_dist
     NA.information[[index_name]][['sigma']] <<- c(NA.information[[index_name]][['sigma']], new_entry_NA_sigma)
+    
+    # Additionally, coef_prev_fit, num_window_shift and new_coef_est are removed to start next iteration with more complex solver if new_coef_est_counter is not 1
+    rm(coef_prev_fit,
+       num_window_shift,
+       new_coef_est,
+       envir = .GlobalEnv)
     
     # Returning NAs for VaR and ES
     return(return_na_VaR_ES(speci_dist))

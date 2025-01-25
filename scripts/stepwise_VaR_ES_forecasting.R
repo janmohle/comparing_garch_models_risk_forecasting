@@ -79,12 +79,15 @@ execution_of_VaR_ES_forecasting_function <- function(){
                                     align = 'right',
                                     coredata = FALSE)
         
-        # Clear coef_prev_fit and num_window_shift for next run
+        # Clear coef_prev_fit, um_window_shift and new_coef_est for next run
         if(exists('coef_prev_fit')){
           rm(coef_prev_fit, envir = .GlobalEnv)
         }
         if(exists('num_window_shift')){
           rm(num_window_shift, envir = .GlobalEnv)
+        }
+        if(exists('new_coef_est')){
+          rm(new_coef_est, envir = .GlobalEnv)
         }
         
         # Returning object after rollapply is difficult to handle, because predict_VaR_ES_1_ahead returns list in each iteration
