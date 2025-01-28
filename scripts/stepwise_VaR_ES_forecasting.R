@@ -1,19 +1,14 @@
-#################################################################################################################
-#### Predicting one step ahead VaR and ES across different variance specifications and distribution assumptions #
-#################################################################################################################
+###################################################################################################################
+#### Predicting one step ahead VaR and ES across different variance specifications and distribution assumptions ###
+###################################################################################################################
 
 # Explanation:
 #  Function calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder joined with price and return data
-#  Takes multiple hours to run without sub-setting!!!!
+#  Takes multiple days to run without sub-setting!!!!
 
 
 # Assign output folder name
-if(simulation){
-  output_folder <- 'simulated_output/'
-} else {
-  output_folder <- 'output/'
-}
-
+output_folder <- ifelse(simulation, 'simulated_output/', 'output/')
 
 # Definition of function
 execution_of_VaR_ES_forecasting_function <- function(){
@@ -75,7 +70,8 @@ execution_of_VaR_ES_forecasting_function <- function(){
                                                                              index_name = index_name,
                                                                              spec_i = spec_i,
                                                                              dist_spec = dist_spec,
-                                                                             n_compl_opti = n_compl_opti),
+                                                                             n_compl_opti = n_compl_opti,
+                                                                             new_coef_est_counter = new_coef_est_counter),
                                     align = 'right',
                                     coredata = FALSE)
         
@@ -122,6 +118,9 @@ execution_of_VaR_ES_forecasting_function <- function(){
         # Print time iteration needed to run
         time <- as.numeric(end - start, units = 'mins')
         cat('Iteration took', time, 'minutes to run\n')
+        
+        # Store execution time in other.quantities
+        other.quantities[[index_name]][[paste0('spec', spec_i, '_', dist_spec)]][['execution_time']] <<- time
       }
     }
     
@@ -169,6 +168,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
         data[[colname_result]] <- ifelse(data$Return <= data[[colname_test]], 1, 0)
       }
     }
+    
     # Computing cumulative exceedences for ES backtesting (values from run to run could vary slightly because of distribution parameter estimation errors due to approximation in numerical optimization!)
     dist.spec.names.vec <- unlist(dist.spec.list)
     var.spec.names.vec <- names(var.spec.list)
@@ -206,7 +206,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
             # Compute value of cdf of standardized empirical innovation
             if(dist == 'empirical'){
               
-              # Extracting current empirical distribution from list with all empirical distributions
+              # Extract current empirical distribution from list with all empirical distributions
               speci_empirical <- paste0('spec', spec_i, '_empirical')
               empirical_dist <- other.quantities[[index_name]][[speci_empirical]][['empirical_dist']][[(i - window_width - 1)]]
               

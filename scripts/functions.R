@@ -1,6 +1,6 @@
-#########################################################################
-### Returns list of price and return plots for all defined indices   ####
-#########################################################################
+##################################################################################
+### Function returns list of price and return plots for all defined indices   ####
+##################################################################################
 
 price_return_plots_func <- function(index){
   
@@ -84,7 +84,7 @@ ts_main_statistics <- function(index,
   # Standardize data
   data_standardized <- (data - results[['mean']]) / results[['sd']]
   
-  # Perform Jaque Bera test for normality
+  # Perform Jaque Bera test of normality
   results[['JB_test']] <- tseries::jarque.bera.test(data_standardized)
   
   # Density plot compared with normal and t distribution
@@ -173,12 +173,6 @@ ts_main_statistics <- function(index,
   # ACF plot
   acf_values <- acf(data,
                     plot = FALSE)
-  
-  
-  
-  #acff <<- acf_values
-  
-  
   
   acf_values <- data.frame(lag = acf_values$lag[2:21],
                            acf = acf_values$acf[2:21])
@@ -282,9 +276,9 @@ ts_main_statistics <- function(index,
   return(results)
 }
 
-############################################################################################
-### Returns one-step-ahead VaR and ES forecast  (input data has to be zoo object)        ###
-############################################################################################
+#####################################################################################################
+### Function returns one-step-ahead VaR and ES forecast  (input data has to be zoo object)        ###
+#####################################################################################################
 predict_VaR_ES_1_ahead <- function(data,
                                    var.spec,
                                    mean.spec,
@@ -293,9 +287,10 @@ predict_VaR_ES_1_ahead <- function(data,
                                    index_name,
                                    spec_i,
                                    dist_spec,
-                                   n_compl_opti){
+                                   n_compl_opti,
+                                   new_coef_est_counter){
   
-  # Stopping function if data is not zoo object
+  # Terminate function if data is not zoo object
   if(!is.zoo(data)){
     data_class <- class(data)
     error_message <- paste0('Input is ',data_class, ' but needs to be zoo object!')
@@ -307,7 +302,7 @@ predict_VaR_ES_1_ahead <- function(data,
     other.quantities <<- list()
   }
   
-  # Global list to store last date of data and reason which leads to NA
+  # Global list to record NAs with their date an the part of the fuction they appeared in
   if(!exists('NA.information')){
     NA.information <<- list()
   }
@@ -499,7 +494,7 @@ predict_VaR_ES_1_ahead <- function(data,
   # Extracting coefficients from fit
   coef_fit <- coef(fit)
   
-  # Storing coefficients for next run within one model (window shift) as starting parameter vector to speed up optimization
+  # Storing coefficients for next run within one model (window shift) as starting parameter vector to speed up optimization. This has no effect if new_coef_est_counter = 1!
   coef_prev_fit <<- as.list(coef_fit)
   
   # Extracting skewness, shape and lambda parameter (if not prevalent, NA gets assigned)

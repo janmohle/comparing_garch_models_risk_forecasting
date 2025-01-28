@@ -1,8 +1,8 @@
-####################################################################################
-#### Subsetting of data and specifications for faster processing in development ####
-####################################################################################
+###########################################################################################
+#### Sub setting of data and specifications for faster processing in development period ###
+###########################################################################################
 
-# Subsets data for faster step wise forecasting if data_include is specified
+# Sub sets data for faster step wise forecasting if data_include is specified
 if(exists('data_include')){
   for(index_name in indices){
     index_data <- get(index_name)

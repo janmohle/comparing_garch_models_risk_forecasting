@@ -1,10 +1,10 @@
 ################################################################################################
-### Simulation of GARCH(1,1) models with skewed t-dist and constant mean equation            ###
+###              Simulation of GARCH(q,p) models                                             ###
 ################################################################################################
 
 for(i in 1:number_simulations){
 
-  # GARCH(1,1) specification with skewd t-distribution
+  # GARCH(q,p) specification
   # Root of price simulation is 100
   garchspec <- ugarchspec(variance.model = list(model = 'sGARCH',
                                                 garchOrder = c(1,1)),
