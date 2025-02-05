@@ -1,0 +1,938 @@
+- The library is already synchronized with the lockfile.
+[1] "2025-01-29 00:04:09 CET"
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: norm 
+Iteration took 26.90148 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: std 
+Iteration took 8.388928 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: ged 
+Iteration took 9.700745 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: snorm 
+Iteration took 6.487659 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: sstd 
+Iteration took 11.81344 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: sged 
+Iteration took 16.68502 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: ghyp 
+Iteration took 74.62684 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: jsu 
+Iteration took 8.951303 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 1 ; Distribution: empirical 
+Iteration took 5.612896 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: norm 
+Iteration took 1.543498 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: std 
+Iteration took 2.357869 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: ged 
+Iteration took 2.827772 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: snorm 
+Iteration took 1.9861 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: sstd 
+Iteration took 3.709605 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: sged 
+Iteration took 5.180122 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: ghyp 
+Iteration took 27.71441 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: jsu 
+Iteration took 2.811552 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 2 ; Distribution: empirical 
+Iteration took 1.545509 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: norm 
+Iteration took 2.339668 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: std 
+Iteration took 4.044228 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: ged 
+Iteration took 5.857797 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: snorm 
+Iteration took 4.405329 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: sstd 
+Iteration took 6.638924 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: sged 
+Iteration took 12.47859 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: ghyp 
+Iteration took 42.85082 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: jsu 
+Iteration took 5.403036 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 3 ; Distribution: empirical 
+Iteration took 2.378324 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: norm 
+Iteration took 3.581882 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: std 
+Iteration took 5.000871 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: ged 
+Iteration took 6.620574 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: snorm 
+Iteration took 5.415672 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: sstd 
+Iteration took 7.370113 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: sged 
+Iteration took 10.6291 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: ghyp 
+Iteration took 41.20827 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: jsu 
+Iteration took 5.995033 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 4 ; Distribution: empirical 
+Iteration took 3.60925 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: norm 
+Iteration took 3.72059 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: std 
+Iteration took 5.054579 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: ged 
+Iteration took 7.166882 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: snorm 
+Iteration took 5.93148 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: sstd 
+Iteration took 7.837008 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: sged 
+Iteration took 12.6517 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: ghyp 
+Iteration took 49.98573 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: jsu 
+Iteration took 7.370978 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 5 ; Distribution: empirical 
+Iteration took 3.683226 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: norm 
+Iteration took 13.53724 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: std 
+Iteration took 14.71822 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: ged 
+Iteration took 22.2592 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: snorm 
+Iteration took 23.80174 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: sstd 
+Iteration took 21.48815 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: sged 
+Iteration took 40.6782 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: ghyp 
+Iteration took 106.7236 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: jsu 
+Iteration took 22.25071 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 6 ; Distribution: empirical 
+Iteration took 13.42819 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: norm 
+Iteration took 24.64333 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: std 
+Iteration took 30.60643 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: ged 
+Iteration took 90.40423 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: snorm 
+Iteration took 46.24546 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: sstd 
+Iteration took 51.60997 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: sged 
+Iteration took 100.7315 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: ghyp 
+Iteration took 526.2582 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: jsu 
+Iteration took 40.74202 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 7 ; Distribution: empirical 
+Iteration took 24.7592 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: norm 
+Iteration took 3.672304 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: std 
+Iteration took 10.65184 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: ged 
+Iteration took 9.205868 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: snorm 
+Iteration took 6.329119 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: sstd 
+Iteration took 13.88234 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: sged 
+Iteration took 16.21747 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: ghyp 
+Iteration took 67.66962 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: jsu 
+Iteration took 9.869867 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 8 ; Distribution: empirical 
+Iteration took 3.695338 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: norm 
+Iteration took 4.884588 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: std 
+Iteration took 7.410253 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: ged 
+Iteration took 9.572566 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: snorm 
+Iteration took 9.025268 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: sstd 
+Iteration took 12.86621 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: sged 
+Iteration took 21.93974 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: ghyp 
+Iteration took 74.79858 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: jsu 
+Iteration took 10.74383 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 9 ; Distribution: empirical 
+Iteration took 4.918971 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: norm 
+Iteration took 11.22794 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: std 
+Iteration took 32.99149 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: ged 
+Iteration took 21.54081 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: snorm 
+Iteration took 35.97598 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: sstd 
+Iteration took 82.69084 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: sged 
+Iteration took 69.95696 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: ghyp 
+Iteration took 298.3258 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: jsu 
+Iteration took 60.98567 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 10 ; Distribution: empirical 
+Iteration took 11.3049 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: norm 
+Iteration took 2.921653 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: std 
+Iteration took 3.50376 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: ged 
+Iteration took 4.563394 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: snorm 
+Iteration took 3.620339 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: sstd 
+Iteration took 5.565918 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: sged 
+Iteration took 7.46081 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: ghyp 
+Iteration took 36.22731 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: jsu 
+Iteration took 4.439249 minutes to run
+Current iteration:  Index: DAX ; Variance Specification Nr.: 11 ; Distribution: empirical 
+Iteration took 2.910341 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: norm 
+Iteration took 5.000665 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: std 
+Iteration took 7.622552 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: ged 
+Iteration took 7.246974 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: snorm 
+Iteration took 5.912402 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: sstd 
+Iteration took 11.45999 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: sged 
+Iteration took 12.29881 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: ghyp 
+Iteration took 54.85046 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: jsu 
+Iteration took 8.387813 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 1 ; Distribution: empirical 
+Iteration took 5.06251 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: norm 
+Iteration took 1.442026 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: std 
+Iteration took 2.263595 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: ged 
+Iteration took 2.647947 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: snorm 
+Iteration took 1.783457 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: sstd 
+Iteration took 3.552082 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: sged 
+Iteration took 4.83937 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: ghyp 
+Iteration took 22.13053 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: jsu 
+Iteration took 2.693436 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 2 ; Distribution: empirical 
+Iteration took 1.457253 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: norm 
+Iteration took 2.359505 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: std 
+Iteration took 4.144915 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: ged 
+Iteration took 5.797559 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: snorm 
+Iteration took 4.392076 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: sstd 
+Iteration took 6.505902 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: sged 
+Iteration took 10.70141 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: ghyp 
+Iteration took 36.65342 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: jsu 
+Iteration took 5.768038 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 3 ; Distribution: empirical 
+Iteration took 2.353011 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: norm 
+Iteration took 3.182367 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: std 
+Iteration took 5.497699 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: ged 
+Iteration took 6.430791 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: snorm 
+Iteration took 5.164319 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: sstd 
+Iteration took 7.875489 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: sged 
+Iteration took 10.44217 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: ghyp 
+Iteration took 35.17172 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: jsu 
+Iteration took 6.282039 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 4 ; Distribution: empirical 
+Iteration took 3.198165 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: norm 
+Iteration took 3.473518 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: std 
+Iteration took 5.402449 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: ged 
+Iteration took 7.237572 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: snorm 
+Iteration took 5.793005 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: sstd 
+Iteration took 8.374093 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: sged 
+Iteration took 12.11472 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: ghyp 
+Iteration took 39.47588 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: jsu 
+Iteration took 7.125598 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 5 ; Distribution: empirical 
+Iteration took 3.487164 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: norm 
+Iteration took 9.723825 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: std 
+Iteration took 15.56427 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: ged 
+Iteration took 16.61518 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: snorm 
+Iteration took 13.32465 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: sstd 
+Iteration took 24.09704 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: sged 
+Iteration took 29.28594 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: ghyp 
+Iteration took 91.84503 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: jsu 
+Iteration took 21.3596 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 6 ; Distribution: empirical 
+Iteration took 9.732739 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: norm 
+Iteration took 8.702769 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: std 
+Iteration took 19.70279 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: ged 
+Iteration took 21.98831 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: snorm 
+Iteration took 17.84765 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: sstd 
+Iteration took 27.99777 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: sged 
+Iteration took 33.92453 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: ghyp 
+Iteration took 103.9065 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: jsu 
+Iteration took 25.78102 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 7 ; Distribution: empirical 
+Iteration took 8.720702 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: norm 
+Iteration took 4.425695 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: std 
+Iteration took 8.038439 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: ged 
+Iteration took 9.213739 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: snorm 
+Iteration took 7.131458 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: sstd 
+Iteration took 11.32493 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: sged 
+Iteration took 14.64026 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: ghyp 
+Iteration took 47.78693 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: jsu 
+Iteration took 10.15261 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 8 ; Distribution: empirical 
+Iteration took 4.375399 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: norm 
+Iteration took 3.634933 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: std 
+Iteration took 7.031269 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: ged 
+Iteration took 8.039742 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: snorm 
+Iteration took 6.001436 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: sstd 
+Iteration took 10.19406 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: sged 
+Iteration took 14.63336 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: ghyp 
+Iteration took 52.6793 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: jsu 
+Iteration took 9.215784 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 9 ; Distribution: empirical 
+Iteration took 3.684393 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: norm 
+Iteration took 8.651525 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: std 
+Iteration took 25.80824 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: ged 
+Iteration took 18.39101 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: snorm 
+Iteration took 17.61855 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: sstd 
+Iteration took 43.24393 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: sged 
+Iteration took 36.45294 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: ghyp 
+Iteration took 134.599 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: jsu 
+Iteration took 32.90862 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 10 ; Distribution: empirical 
+Iteration took 8.636281 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: norm 
+Iteration took 3.442272 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: std 
+Iteration took 3.350021 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: ged 
+Iteration took 4.160843 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: snorm 
+Iteration took 3.630588 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: sstd 
+Iteration took 5.345639 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: sged 
+Iteration took 7.105778 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: ghyp 
+Iteration took 27.47872 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: jsu 
+Iteration took 3.787221 minutes to run
+Current iteration:  Index: WIG ; Variance Specification Nr.: 11 ; Distribution: empirical 
+Iteration took 3.458305 minutes to run
+
+CumVio calculation did not work for one observation (Index: WIG ; Variance Specification Nr.: spec10 ; Distribution: ged ):
+Error message:  non-numeric argument to binary operator 
+NAs get returned for CumVio
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: norm 
+Iteration took 9.404093 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: std 
+Iteration took 13.29784 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: ged 
+Iteration took 12.85138 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: snorm 
+Iteration took 11.10332 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: sstd 
+Iteration took 19.5176 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: sged 
+Iteration took 22.7115 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: ghyp 
+Iteration took 87.7374 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: jsu 
+Iteration took 13.98906 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 1 ; Distribution: empirical 
+Iteration took 9.346551 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: norm 
+Iteration took 2.553713 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: std 
+Iteration took 3.657255 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: ged 
+Iteration took 4.839927 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: snorm 
+Iteration took 3.323603 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: sstd 
+Iteration took 5.77531 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: sged 
+Iteration took 9.371572 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: ghyp 
+Iteration took 34.9117 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: jsu 
+Iteration took 4.32592 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 2 ; Distribution: empirical 
+Iteration took 2.581605 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: norm 
+Iteration took 3.845682 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: std 
+Iteration took 9.152998 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: ged 
+Iteration took 10.58935 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: snorm 
+Iteration took 7.588257 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: sstd 
+Iteration took 14.10538 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: sged 
+Iteration took 23.692 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: ghyp 
+Iteration took 60.97036 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: jsu 
+Iteration took 9.741976 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 3 ; Distribution: empirical 
+Iteration took 3.895489 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: norm 
+Iteration took 6.527777 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: std 
+Iteration took 8.896198 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ged 
+Iteration took 13.89037 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: snorm 
+Iteration took 10.75605 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: sstd 
+Iteration took 14.17403 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: sged 
+Iteration took 26.71605 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp 
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-01
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-03
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-09
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-11
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-14
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-16
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-17
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-19
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-24
+
+Iteration took 54.29769 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: jsu 
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: jsu )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-12
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: jsu )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-17
+
+
+Sigma cannot be calculated for one observation (Index: BTC ; Variance Specification Nr.: 4 ; Distribution: jsu )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2022-12-21
+
+Iteration took 10.8434 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 4 ; Distribution: empirical 
+Iteration took 6.386753 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: norm 
+
+Solvers did not work for one observation (Index: BTC ; Variance Specification Nr.: 5 ; Distribution: norm ):
+Error message:  object 'B' not found 
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2020-05-18
+
+Iteration took 7.557659 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: std 
+Iteration took 11.49499 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: ged 
+Iteration took 11.39859 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: snorm 
+
+Solvers did not work for one observation (Index: BTC ; Variance Specification Nr.: 5 ; Distribution: snorm ):
+Error message:  object 'B' not found 
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2020-05-12
+
+Iteration took 12.45806 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: sstd 
+Iteration took 16.77828 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: sged 
+Iteration took 23.12009 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: ghyp 
+Iteration took 62.0997 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: jsu 
+Iteration took 11.29389 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 5 ; Distribution: empirical 
+
+Solvers did not work for one observation (Index: BTC ; Variance Specification Nr.: 5 ; Distribution: norm ):
+Error message:  object 'B' not found 
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2020-05-18
+
+Iteration took 7.688921 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: norm 
+Iteration took 43.39258 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: std 
+Iteration took 26.67856 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: ged 
+Iteration took 27.37585 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: snorm 
+Iteration took 65.94475 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: sstd 
+Iteration took 39.29062 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: sged 
+Iteration took 50.69485 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: ghyp 
+Iteration took 136.5576 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: jsu 
+Iteration took 29.33415 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 6 ; Distribution: empirical 
+Iteration took 43.28396 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: norm 
+Iteration took 17.2287 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: std 
+Iteration took 97.2631 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: ged 
+Iteration took 41.55627 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: snorm 
+Iteration took 37.01725 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: sstd 
+Iteration took 152.2086 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: sged 
+Iteration took 66.94304 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: ghyp 
+
+ugarchforecast-->error: parameters names do not match specification
+Expected Parameters are: mu omega alpha1 beta1 gamma1 delta skew shape ghlambda
+
+Gradient calculation of mu did not work for one observation (Index: BTC ; Variance Specification Nr.: 7 ; Distribution: ghyp ):
+Error message:  Exiting
+ugarchforecast-->error: parameters names do not match specification
+Expected Parameters are: mu omega alpha1 beta1 gamma1 delta skew shape ghlambda
+
+Gradient calculation of sigma did not work for one observation (Index: BTC ; Variance Specification Nr.: 7 ; Distribution: ghyp ):
+Error message:  Exiting
+ugarchfilter-->error: parameters names do not match specification
+Expected Parameters are: mu omega alpha1 beta1 gamma1 delta skew shape ghlambda
+
+Forecasting did not work for one observation (Index: BTC ; Variance Specification Nr.: 7 ; Distribution: ghyp ):
+Error message:  Exiting 
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2024-09-08
+
+Iteration took 541.2705 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: jsu 
+Iteration took 41.03487 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 7 ; Distribution: empirical 
+Iteration took 17.29642 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: norm 
+Iteration took 11.51937 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: std 
+Iteration took 49.36789 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: ged 
+Iteration took 23.73231 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: snorm 
+Iteration took 20.37222 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: sstd 
+Iteration took 82.83481 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: sged 
+Iteration took 43.44255 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: ghyp 
+Iteration took 325.4979 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: jsu 
+Iteration took 24.6787 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 8 ; Distribution: empirical 
+Iteration took 11.57529 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: norm 
+Iteration took 9.286986 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: std 
+Iteration took 23.08478 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: ged 
+Iteration took 15.35933 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: snorm 
+Iteration took 32.62704 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: sstd 
+Iteration took 40.17222 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: sged 
+Iteration took 32.62904 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: ghyp 
+Iteration took 79.9349 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: jsu 
+Iteration took 21.61142 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 9 ; Distribution: empirical 
+Iteration took 9.438671 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: norm 
+Iteration took 36.82943 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: std 
+Iteration took 174.6118 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ged 
+Iteration took 79.48654 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: snorm 
+Iteration took 77.38253 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: sstd 
+Iteration took 297.5941 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: sged 
+Iteration took 129.5843 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ghyp 
+
+ugarchforecast-->error: parameters names do not match specification
+Expected Parameters are: mu omega alpha1 beta1 eta11 eta21 lambda skew shape ghlambda
+
+Gradient calculation of mu did not work for one observation (Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ghyp ):
+Error message:  Exiting
+ugarchforecast-->error: parameters names do not match specification
+Expected Parameters are: mu omega alpha1 beta1 eta11 eta21 lambda skew shape ghlambda
+
+Gradient calculation of sigma did not work for one observation (Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ghyp ):
+Error message:  Exiting
+Forecasting did not work for one observation (Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ghyp ):
+Error message:  dim(X) must have a positive length 
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2024-05-01
+
+
+ugarchforecast-->error: parameters names do not match specification
+Expected Parameters are: mu omega alpha1 beta1 eta11 eta21 lambda skew shape ghlambda
+
+Gradient calculation of mu did not work for one observation (Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ghyp ):
+Error message:  Exiting
+ugarchforecast-->error: parameters names do not match specification
+Expected Parameters are: mu omega alpha1 beta1 eta11 eta21 lambda skew shape ghlambda
+
+Gradient calculation of sigma did not work for one observation (Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ghyp ):
+Error message:  Exiting
+Forecasting did not work for one observation (Index: BTC ; Variance Specification Nr.: 10 ; Distribution: ghyp ):
+Error message:  dim(X) must have a positive length 
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2024-05-02
+
+Iteration took 1087.019 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: jsu 
+Iteration took 112.6178 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 10 ; Distribution: empirical 
+Iteration took 36.6389 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: norm 
+Iteration took 4.779939 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: std 
+Iteration took 6.587679 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: ged 
+Iteration took 8.101089 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: snorm 
+Iteration took 5.128376 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: sstd 
+Iteration took 9.510956 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: sged 
+Iteration took 13.93244 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: ghyp 
+Iteration took 45.67668 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: jsu 
+Iteration took 7.03961 minutes to run
+Current iteration:  Index: BTC ; Variance Specification Nr.: 11 ; Distribution: empirical 
+Iteration took 4.789507 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: norm 
+Iteration took 5.872132 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: std 
+Iteration took 8.7672 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: ged 
+Iteration took 10.21036 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: snorm 
+Iteration took 7.230796 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: sstd 
+Iteration took 13.00116 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: sged 
+Iteration took 18.076 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: ghyp 
+Iteration took 67.85053 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: jsu 
+Iteration took 9.551705 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 1 ; Distribution: empirical 
+Iteration took 6.120577 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: norm 
+Iteration took 1.606682 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: std 
+Iteration took 2.571515 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: ged 
+Iteration took 3.006836 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: snorm 
+Iteration took 2.166641 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: sstd 
+Iteration took 3.955565 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: sged 
+Iteration took 5.479328 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: ghyp 
+Iteration took 27.00864 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: jsu 
+Iteration took 2.971626 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 2 ; Distribution: empirical 
+Iteration took 1.601571 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: norm 
+Iteration took 2.402599 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: std 
+Iteration took 4.242031 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: ged 
+Iteration took 6.063851 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: snorm 
+Iteration took 4.438377 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: sstd 
+Iteration took 6.464654 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: sged 
+Iteration took 11.63262 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: ghyp 
+Iteration took 37.8781 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: jsu 
+Iteration took 5.43168 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 3 ; Distribution: empirical 
+Iteration took 2.457993 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: norm 
+Iteration took 3.896216 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: std 
+Iteration took 6.026266 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: ged 
+Iteration took 7.641644 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: snorm 
+Iteration took 6.207864 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: sstd 
+Iteration took 8.71205 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: sged 
+
+Sigma cannot be calculated for one observation (Index: GLD ; Variance Specification Nr.: 4 ; Distribution: sged )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2023-02-16
+
+Iteration took 12.44393 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: ghyp 
+
+Sigma cannot be calculated for one observation (Index: GLD ; Variance Specification Nr.: 4 ; Distribution: ghyp )
+NAs get returned for VaR and ES
+Preceeding date of date of which VaR and ES forecast cannot be calculated: 2023-02-15
+
+Iteration took 42.01337 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: jsu 
+Iteration took 7.774311 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 4 ; Distribution: empirical 
+Iteration took 4.11305 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: norm 
+Iteration took 4.066606 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: std 
+Iteration took 6.375476 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: ged 
+Iteration took 8.549749 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: snorm 
+Iteration took 6.900336 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: sstd 
+Iteration took 8.952898 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: sged 
+Iteration took 15.84015 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: ghyp 
+Iteration took 45.90506 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: jsu 
+Iteration took 7.57696 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 5 ; Distribution: empirical 
+Iteration took 4.177224 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: norm 
+Iteration took 10.49049 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: std 
+Iteration took 14.64643 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: ged 
+Iteration took 18.5199 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: snorm 
+Iteration took 19.21184 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: sstd 
+Iteration took 21.10866 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: sged 
+Iteration took 34.15688 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: ghyp 
+Iteration took 81.07107 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: jsu 
+Iteration took 18.90566 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 6 ; Distribution: empirical 
+Iteration took 10.52722 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: norm 
+Iteration took 4.870813 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: std 
+Iteration took 16.32889 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: ged 
+Iteration took 15.11533 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: snorm 
+Iteration took 8.692959 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: sstd 
+Iteration took 15.22768 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: sged 
+Iteration took 17.7677 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: ghyp 
+Iteration took 58.0303 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: jsu 
+Iteration took 11.07013 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 7 ; Distribution: empirical 
+Iteration took 4.216701 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: norm 
+Iteration took 3.149124 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: std 
+Iteration took 7.516295 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: ged 
+Iteration took 6.304543 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: snorm 
+Iteration took 5.16624 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: sstd 
+Iteration took 12.09001 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: sged 
+Iteration took 10.31922 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: ghyp 
+Iteration took 42.37261 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: jsu 
+Iteration took 7.094206 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 8 ; Distribution: empirical 
+Iteration took 3.166612 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: norm 
+Iteration took 4.113165 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: std 
+Iteration took 6.24326 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: ged 
+Iteration took 8.548129 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: snorm 
+Iteration took 7.594754 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: sstd 
+Iteration took 9.213465 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: sged 
+Iteration took 17.44116 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: ghyp 
+Iteration took 45.97713 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: jsu 
+Iteration took 9.239954 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 9 ; Distribution: empirical 
+Iteration took 4.266635 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: norm 
+Iteration took 6.043329 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: std 
+Iteration took 18.63481 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: ged 
+Iteration took 12.34843 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: snorm 
+Iteration took 8.306281 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: sstd 
+Iteration took 18.92114 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: sged 
+Iteration took 21.33859 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: ghyp 
+Iteration took 75.68153 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: jsu 
+Iteration took 13.39288 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 10 ; Distribution: empirical 
+Iteration took 6.061793 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: norm 
+Iteration took 2.243521 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: std 
+Iteration took 3.456042 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: ged 
+Iteration took 4.08006 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: snorm 
+Iteration took 2.686492 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: sstd 
+Iteration took 5.315261 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: sged 
+Iteration took 6.930338 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: ghyp 
+Iteration took 30.97093 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: jsu 
+Iteration took 3.817004 minutes to run
+Current iteration:  Index: GLD ; Variance Specification Nr.: 11 ; Distribution: empirical 
+Iteration took 2.264648 minutes to run
+[1] "2025-02-05 11:26:07 CET"

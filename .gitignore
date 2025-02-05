@@ -5,7 +5,6 @@
 old/old.R
 old/old_functions.R
 scripts/test.R
-output/
 simulated_data/
 simulated_output/
 simulated_data_100/
@@ -14,5 +13,7 @@ old/
 scripts/ZZ_not_tracked/
 testing/
 not_tracked/
+output/other_quantities.RData
+output_final/other_quantities.RData
 
 

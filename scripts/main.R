@@ -3,6 +3,8 @@
 #################################################################################
 
 #DEFINITLY:
+# Definitely change name of: spec10 <-> spec6 & spec11 <-> spec9
+# Consider changing rugarch version to 1.4-3
 # Recheck all tests
 # Try loading results with simulations
 # Include check that Covariance matrix was calculated and added to other.quantities (it appears that sometimes the covariance matrix of estimation is not estimated)
@@ -173,22 +175,22 @@ var.spec.list <- list(spec1 = list(model = 'sGARCH',              # ARCH (set ar
                       spec5 = list(model = 'fGARCH',              # TGARCH
                                    garchOrder = c(arch, garch),
                                    submodel = 'TGARCH'),
-                      spec6 = list(model = 'fGARCH',              # FGARCH
+                      spec6 = list(model = 'fGARCH',              # AVGARCH
                                    garchOrder = c(arch, garch),
-                                   submodel = 'ALLGARCH'),
+                                   submodel = 'AVGARCH'),
                       spec7 = list(model = 'apARCH',              # APARCH
                                    garchOrder = c(arch, garch)),
                       spec8 = list(model = 'fGARCH',              # NGARCH
                                    garchOrder = c(arch, garch),
                                    submodel = 'NGARCH'),
-                      spec9 = list(model = 'csGARCH',             # CSGARCH
-                                   garchOrder = c(arch, garch)),
-                      spec10 = list(model = 'fGARCH',             # AVGARCH
+                      spec9 = list(model = 'fGARCH',              # NAGARCH
+                                   garchOrder = c(arch, garch),
+                                   submodel = 'NAGARCH'),
+                      spec10 = list(model = 'fGARCH',             # FGARCH
                                     garchOrder = c(arch, garch),
-                                    submodel = 'AVGARCH'),
-                      spec11 = list(model = 'fGARCH',             # NAGARCH
-                                    garchOrder = c(arch, garch),
-                                    submodel = 'NAGARCH'),
+                                    submodel = 'ALLGARCH'),
+                      spec11 = list(model = 'csGARCH',            # CGARCH
+                                    garchOrder = c(arch, garch)),
                       spec12 = list(model = 'iGARCH',             # IGARCH: Leave out! ES backtest always fails due to incompatible dimensions of R and W
                                     garchOrder = c(arch, garch)),
                       spec13 = list(model = 'realGARCH',          # realized GARCH: don't use: ugarchfit-->error: you must supply the realized volatility (realizedVol) for the realGARCH model
@@ -331,6 +333,7 @@ if(plot_all_calc_models){
     }
   }
   saveRDS(VaR.ES.plot, file=paste0(ifelse(simulation, 'simulated_output/', 'output/'), 'VaR_ES_plot.RData'))
+  rm(index, index_data, speci, dist, data)
 }
 
 
