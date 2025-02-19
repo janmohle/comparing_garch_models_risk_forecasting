@@ -4,9 +4,10 @@ Instructions how to run the code:
 
 1. Clone repository to local machine
 2. Download other_quantities.RData and optionally VaR_ES_plot.RData from shared OneDrive folder: https://1drv.ms/f/s!AoS3k2oMmWvihL5irAKA8GgvZYAyJw?e=gkjJRf and store it in output folder
-3. Open scripts/main.R: From here, the program can be parameterized and run
-4. Follow instructions in main.R regarding parameter settings before running the code
-5. Before running, make sure renv is installed. This can be done with the following code: install.packages('renv'). Use renv::restore() and follow dialog to set up libraries.
+3. Make sure R and RStudio are installed and click on comparing_garch_models_risk_forecasting.Rproj to open the project
+4. Open scripts/main.R: From here, the program can be parameterized and run
+5. Follow instructions in main.R regarding parameter settings before running the code
+6. Before running, make sure renv is installed. This can be done with the following code: install.packages('renv'). Use renv::restore() and follow dialog to set up libraries.
 
 Additional notes:
 
