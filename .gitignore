@@ -8,6 +8,8 @@ scripts/ZZ_not_tracked/
 simulated_data/
 simulated_output/
 output/other_quantities.RData
+output/VaR_ES_plot.RData
 output_final/other_quantities.RData
+output_final/VaR_ES_plot.RData
 tikzMetricsDictionary
 
