@@ -1,54 +1,23 @@
 #################################################################################
-####           TO-DO-LIST AND NOTES                                          ####
+####           General notes                                                 ####
 #################################################################################
 
-#DEFINITLY:
-# Definitely change name of: spec10 <-> spec6 & spec11 <-> spec9
-# Consider changing rugarch version to 1.4-3
-# Recheck all tests
-# Try loading results with simulations
-# Include check that Covariance matrix was calculated and added to other.quantities (it appears that sometimes the covariance matrix of estimation is not estimated)
-# Compare results of my tests with test from public packages
-
-#DONE:
-# Add execution time to other.quantities[[index]][[paste0('spec_', spec_i, '_', dist_spec)]][['execution_time]] <- time in stepwise_VaR_ES_forecastin line 126
-# Recheck whole process and delete parts which are not needed anymore
-
-# All for ES Backtest:
-# In gradient calculation of mu and sigma, should it really be the forecasted value or the fitted value??? -> probably forecasted value
-# handle errors in gradient calculation -> improve parameters of grad(): consider first richardson and if this fails then simple
-# Check that ES Backtests handle NAs in other.quantities correctly (historical distributions maybe different?)
-# Check if backtest for historical distribution makes sense
-# Include other ES Backtests from esback package
+# Program has to be parameterized in 'General parameter setting' and 'Sub setting and steering parameters'
+# To test the program, parameters in 'Sub setting and steering parameters' might have to be changed
+# Important: Please read trough explanations of these parameters before running the program!!
 
 # NOTES:
-
-# MAYBE:
-# Include other ES Backtests -> definitly compare results I would receive with that
-# Include loss function for comparison if backtest don't come to satisfactory result
-# Store information of problems during backtest execution in separate object
-# Handle convergence information
-
-
-# CHALLANGES:
-
-# IDEAS:
-
-# RECHECK LOGIC RESULTS:
-# - date assignments are correct in tables and other.quantities
-
-# NOTE:
-# Using parameter of previous shift as starting parameter reduces optimization time a lot to biased estimates but leads in some models -> not done in final version (but with setting n_compl_opti and new_coef_est_counter still possible)
+# Using parameter of previous shift as starting parameter reduces optimization time a lot buts leads to biases in some models -> not done in final version (but with setting n_compl_opti and new_coef_est_counter still possible)
 # First return in input data has to be NA that the program works correctly!
-# main processing time consumers are optimization, gradiant calculation and integration. Only optimization can really be adjusted. A simple way would be to adjust n_compl_opti, but as mentioned above this leads to errors
-# paralleling would decrease computation time a lot, but conflicts with program logic as it is -> current program relies on sequential execution to work properly -> paralleling could be an improvement for later
+# main processing time consumers are optimization, gradiant calculation and integration. Only optimization can really be adjusted. A simple way would be to adjust n_compl_opti, but as mentioned above this leads to biases for some models
+# parallelization would decrease computation time a lot, but conflicts with program logic as it is -> current program relies on sequential execution to work properly -> paralleling could be an improvement for the future
 
 #################################################################################
 ####           General set-up                                                ####
 #################################################################################
 
-# Open connection to write console messages into a txt file
-sink('console_messages.txt', split = TRUE)
+# Open connection to write console messages into a txt file (uncomment if needed)
+#sink('console_messages.txt', split = TRUE)
 
 # Initial cleaning
 rm(list = ls())
@@ -98,49 +67,64 @@ window_width = 750
 # Tolerance level for VaR and ES
 tolerance_lvl = 0.05
 
-#######################################################################################
-### Sub setting parameters for faster calculations (mainly for development period   ###
-#######################################################################################
+#################################################################################
+###     Sub setting and steering parameters                                   ###
+#################################################################################
 
-# Number of forecasts (comment out if not needed)
+# Number of forecasts (comment out if not needed or if forecast results are only loaded)
 #number_forecasts = 50
 
-# Input data - has to be higher than parameter window_width (could also be set directly, but setting it with number_forecasts is recommended) (comment out if not needed)
+# Input data - has to be higher than parameter window_width (could also be set directly, but setting it with number_forecasts is recommended) (comment out if not needed or if forecast results are only loaded)
 #data_include = 1:(window_width+1+number_forecasts)
 
 # Indices to include (comment out if not needed)
 #index_include = c(1,2)
 
-# Variance specifications (comment out if not needed)
+# Variance specifications to include from var.spec.list (comment out if not needed) (Paper includes c(1:11))
 varspec_include = c(1:11)
 
-# Distribution assumptions (comment out if not needed)
+# Distribution assumptions to include from dist.spec.list (comment out if not needed) (Paper includes c(1:7,10,11))
 dist_include = c(1:7,10,11)
 
-# Should real data or simulated data be used? TRUE for simulated data (needs to be set)
-# Script used for simulation can be found in scripts/simulate_data.R
+# Should real data or simulated data be used? Set TRUE for simulated data and FALSE for real data (needs to be set)
+# Script used for simulation can be found in scripts/simulate_data.R. For real data folder with name'output' must exist and for simulated data folders 'simulated_data' and 'simulated_output' must exist
 simulation = FALSE
 
 # Number of simulations (has to be set if simulation = TRUE) (comment out if if simulation = FALSE)
 #number_simulations = 400
 
 # Execution of VaR and ES forecast (has to be set)
-# TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple days to run with full data set!)
-# FALSE: old results are loaded from csv files in output folder - not recommended to use with simulated data - index_include specifies which index data is loaded
-execution_of_VaR_ES_forecasting = TRUE
+# TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple days to run with full data set! + overwrites old results!!!)
+# FALSE: results are loaded from csv files in output folder - index_include specifies which index data is loaded
+# If one wants to test the program and wants to set this parameter to TRUE, I highly recommend to use subsetting options, especially number_forecasts, index_include, varspec_include and dist_include and to first rename 'output' folder which contains my results to not loose it and then create a new output folder.
+execution_of_VaR_ES_forecasting = FALSE
 
 # Parameter which sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit (has to be set)
 # In cases where new_coef_est_counter = 1, this parameter has no effect!
+# I recommend to leave it as it is!
 n_compl_opti = 100
 
 # Parameter which sets number of times after which fitting is executed without parameter of previous run as starting parameters. It is recommended to set it to 1, since it leads to faster executions but also introduces biases in some models (has to be set)
+# I recommend to leave it as it is!
 new_coef_est_counter = 1
 
 # Execution of VaR and ES Backtests (has to be set)
+# If TRUE, acktests gets executed, if FALSE, backtest results get loaded
 execute_Backtest = FALSE
 
 # Plot all calculated models (has to be set)
 plot_all_calc_models = FALSE
+
+
+# Only set follwing parameters to TRUE if varspec_include = c(1:11); dist_include = c(1:7,10,11); all 4 indices are included, simulation = FALSE, and execute_Backtest = TRUE
+# -> otherwise error would appear
+
+# If TRUE, scripts gets executed which create views of backtests
+execute_view_creation_backtest = FALSE
+
+# If TRUE, script gets executed which calaculates rankings and views based on these rankings
+execute_loss_function_and_ranking = FALSE
+
 
 #################################################################################
 ####           General model specification set-up                            ####
@@ -163,8 +147,8 @@ if(simulation){
                  'GLD')
     }
 
-# List of all possible variance specifications from rugarch (excluding mcsGARCH, since this is mainly for intra-day data)
-var.spec.list <- list(spec1 = list(model = 'sGARCH',              # ARCH (set arch correctly)
+# List of possible variance specifications from rugarch
+var.spec.list <- list(spec1 = list(model = 'sGARCH',              # ARCH
                                    garchOrder = c(10, 0)),
                       spec2 = list(model = 'sGARCH',              # GARCH
                                    garchOrder = c(arch, garch)),
@@ -191,11 +175,11 @@ var.spec.list <- list(spec1 = list(model = 'sGARCH',              # ARCH (set ar
                                     submodel = 'ALLGARCH'),
                       spec11 = list(model = 'csGARCH',            # CGARCH
                                     garchOrder = c(arch, garch)),
-                      spec12 = list(model = 'iGARCH',             # IGARCH: Leave out! ES backtest always fails due to incompatible dimensions of R and W
+                      spec12 = list(model = 'iGARCH',             # IGARCH (not used in paper)
                                     garchOrder = c(arch, garch)),
-                      spec13 = list(model = 'realGARCH',          # realized GARCH: don't use: ugarchfit-->error: you must supply the realized volatility (realizedVol) for the realGARCH model
+                      spec13 = list(model = 'realGARCH',          # realized GARCH (not used in paper)
                                     garchOrder = c(arch, garch)),
-                      spec14 = list(model = 'fiGARCH',            # FIGARCH: don't use: gradient calculations and forecasting does not work
+                      spec14 = list(model = 'fiGARCH',            # FIGARCH (not used in paper)
                                     garchOrder = c(arch, garch)))
 
 
@@ -211,9 +195,9 @@ dist.spec.list <-  list(norm = 'norm',      #1
                         sstd = 'sstd',      #5
                         sged = 'sged',      #6
                         ghyp = 'ghyp',      #7   # nests sstd and nig
-                        nig = 'nig',        #8   # dont include: nig leads to problems (a lot of NaN in spec 3 for GLD -> Should I exclude it)
-                        ghst = 'ghst',      #9   # dont include: optimazation takes often too long with this distribution -> Sould I exclude it? --- df and skewness parameter interact in complicated way
-                        jsu = 'jsu',        #10  # condider to include: jsu leads to some problems (NaN in sigma in Spec 3 for GLD -> Should I include it or not?)
+                        nig = 'nig',        #8   (not used in paper)
+                        ghst = 'ghst',      #9   (not used in paper)
+                        jsu = 'jsu',        #10
                         empirical = 'norm') #11  # Normal distribution for QML estimation -> asymptotically consistent
 
 
@@ -254,32 +238,28 @@ saveRDS(main.statistics, file=paste0(ifelse(simulation, 'simulated_output/', 'ou
   # -> significant autocorrelation (10 lags) (but looks very uninformative and weak)
   # -> significant ARCH effect (10 lags)
   # -> leverage effect
-  # -> mean model could potentially be useful
   
 # WIG
   # -> no significant autocorrelation (10 lags)
   # -> significant ARCH effect (10 lags)
   # -> leverage effect
-  # NO MEAN MODEL NEEDED
   
 # BTC
   # -> significant autocorrelation (10 lags) (potentially informative: first day - negative reaction; second day - positive reaction -- but very small coefficients)
   # -> significant ARCH effect (10 lags)
   # -> no clear leverage effect (only very slight)
-  # -> mean model could potentially be useful
   
 # GLD
   # -> no significant autocorrelation (10 lags)
   # -> significant ARCH effect (10 lags)
-  # -> no or late and weak leverage effect
-  # NO MEAN MODEL NEEDED
+  # -> no leverage effect
 
 # GENERAL
-# - Serial autocorrelation seems to be non existent or very weak -> mostly uninformative, although direction in BTC interesting
+# - Serial autocorrelation seems to be non existent or very weak -> mostly uninformative, although direction in BTC might be interesting
 # - Volatility clustering always existent
 # - leverage effect seems to be stronger in stock indices than in BTC and especially stronger than in GLD
 # - Standardized returns are not normally distributed (excess kurtosis and negative skewness)
-# - slightly positive mean and median of returns (DAX, WIG, GLD: 1e-4, BTC: 1e-3) -> slight positive drift
+# - slightly positive mean and median of returns (DAX, WIG, GLD: 1e-4, BTC: 1e-3)
 
 #################################################################################
 ####  Forecasting or loading forecasted data                                 ####
@@ -328,7 +308,10 @@ if(plot_all_calc_models){
                              
                              labels = c("No", "Yes")) +
           labs(title = paste0('VaR and ES vs historical returns: ', speci, '_', dist)) +
-          theme(plot.title = element_text(hjust = 0.5))
+          theme(plot.title = element_text(hjust = 0.5),
+                panel.background = element_rect(fill = 'white'),
+                panel.grid = element_blank(),
+                axis.line = element_line(color = 'black'))
       }
     }
   }
@@ -336,11 +319,8 @@ if(plot_all_calc_models){
   rm(index, index_data, speci, dist, data)
 }
 
-
-plot_1 = FALSE
-
-
 # Other plots
+plot_1 = FALSE
 if(plot_1){
   for(index in indices){
     data <- get(index)
@@ -378,8 +358,14 @@ ggplot(data =  DAX[-1:-(window_width + 2),],
 # Print finish time
 Sys.time()
 
-# Close connection to txt file
-sink()
+# Close connection to txt file (uncomment if needed)
+#sink()
 
 
+#################################################################################
+####    Execution of backtest and loss function view creation for paper      ####
+#################################################################################
 
+if(execute_view_creation_backtest){source('scripts/view_creation_backtests.R')}
+
+if(execute_loss_function_and_ranking){source('scripts/loss_function_and_ranking.R')}

@@ -2,6 +2,8 @@
 ###              Simulation of GARCH(q,p) models                                             ###
 ################################################################################################
 
+# simulated_data and simulated_output have to be specified!
+
 for(i in 1:number_simulations){
 
   # GARCH(q,p) specification

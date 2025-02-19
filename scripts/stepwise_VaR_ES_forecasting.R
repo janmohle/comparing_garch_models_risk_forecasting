@@ -4,8 +4,6 @@
 
 # Explanation:
 #  Function calculates forecasts for all data sets across all variance specifications and distribution assumptions and stores it in csv file in output folder joined with price and return data
-#  Takes multiple days to run without sub-setting!!!!
-
 
 # Assign output folder name
 output_folder <- ifelse(simulation, 'simulated_output/', 'output/')
@@ -169,7 +167,7 @@ execution_of_VaR_ES_forecasting_function <- function(){
       }
     }
     
-    # Computing cumulative exceedences for ES backtesting (values from run to run could vary slightly because of distribution parameter estimation errors due to approximation in numerical optimization!)
+    # Computing cumulative exceedences for ES backtesting
     dist.spec.names.vec <- unlist(dist.spec.list)
     var.spec.names.vec <- names(var.spec.list)
 
@@ -264,9 +262,9 @@ execution_of_VaR_ES_forecasting_function <- function(){
   }
 }
 
-################################################################################################
-### Execution of VaR ES forecasting if execution_of_VaR_ES_forecasting == TRUE, else loading ###
-################################################################################################
+###########################################################################################################
+### Execution of VaR ES forecasting if execution_of_VaR_ES_forecasting == TRUE, else loading of results ###
+###########################################################################################################
 
 if(execution_of_VaR_ES_forecasting){
   

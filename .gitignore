@@ -2,18 +2,12 @@
 .Rhistory
 .RData
 .Ruserdata
-old/old.R
-old/old_functions.R
-scripts/test.R
+not_tracked/
+data/old/
+scripts/ZZ_not_tracked/
 simulated_data/
 simulated_output/
-simulated_data_100/
-simulated_output_100/
-old/
-scripts/ZZ_not_tracked/
-testing/
-not_tracked/
 output/other_quantities.RData
 output_final/other_quantities.RData
-
+tikzMetricsDictionary
 

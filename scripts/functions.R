@@ -10,12 +10,21 @@ price_return_plots_func <- function(index){
   # Initiate empty list for plots for each index
   index.price.return.plots <- list()
   
+  # Assign full names of index for Gold and Bitcoin
+  if(index == 'BTC'){
+    name_index <- 'Bitcoin'
+  } else if(index == 'GLD'){
+    name_index <- 'Gold'
+  } else {
+    name_index <- index
+  }
+  
   # Price plot
   index.price.return.plots[['Price']] <- ggplot(data,
                                                 aes(x = Date,
                                                     y = Price)) +
     geom_line(na.rm = TRUE, size = 0.5) +
-    labs(title = paste0('Price ',index)) +
+    labs(title = paste0('Price ',name_index)) +
     theme(plot.title = element_text(hjust = 0.5),
           panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
@@ -26,7 +35,7 @@ price_return_plots_func <- function(index){
                                                  aes(x = Date,
                                                      y = Return)) +
     geom_line(na.rm = TRUE, size = 0.5) +
-    labs(title = paste0('Daily Log-Returns ',index)) +
+    labs(title = paste0('Daily Log-Returns ',name_index)) +
     theme(plot.title = element_text(hjust = 0.5),
           panel.background = element_rect(fill = 'white'),
           panel.grid = element_blank(),
@@ -394,6 +403,7 @@ predict_VaR_ES_1_ahead <- function(data,
   # Return NA if fitting doesn't work
   if(num_window_shift %% n_compl_opti != 0 | new_coef_est_counter == 1){
     # More efficient and faster solver, since solnp is tried first with parameters of previous window as starting parameters (hybrid tries: solnp -> nlminb -> gosolnp -> nloptr)
+    # If new_coef_est_counter = 1, preveous parameters are never used
     # solver.control specified for gosolnp and nloptr which are used if previous optimizer fail
     fit <- tryCatch(
       {
@@ -1285,6 +1295,20 @@ ES_cc_backtest <- function(CumVio,
     # Inverting sigma_hut_mat
     sigma_hut_mat_inv <- solve(sigma_hut_mat)
     
+    # In a few models the gradient of sigma contains NaNs which cannot be solved. This leads to NaNs in test result if robust = TRUE
+    # Differences in results between parameter error robust version and non-robust version of CC test are usually very small and hence often neglectable.
+    # Therefore, if NaN in sigma_hut_mat_inv, than non-robust version of test is used even in cases where robust = TRUE and incident is noted in NA.information.
+    if(any(is.nan(sigma_hut_mat_inv) | is.na(sigma_hut_mat_inv))){
+
+      sigma_hut_mat_inv <- diag(x = 1, nrow = lags)
+      
+      if(is.null(NA.information[[index]][['ES_cc_backtest_robust']])){
+        NA.information[[index]][['ES_cc_backtest_robust']] <<- as.vector(speci_dist)
+      } else {
+        NA.information[[index]][['ES_cc_backtest_robust']] <<- c(NA.information[[index]][['ES_cc_backtest_robust']], speci_dist)
+      }
+    }
+    
   } else {
     # Sigma_hut matrix is identity matrix if no parameter estimation risk correction is applyed to variance of test statistic C
     sigma_hut_mat_inv <- diag(x = 1, nrow = lags)
@@ -1298,10 +1322,71 @@ ES_cc_backtest <- function(CumVio,
   p <- pchisq(q = C,
               df = length(rho_nj),
               lower.tail = FALSE)
-  names(C) <- speci_dist
+  names(p) <- speci_dist
   
   #Return results
   results <- list(C = C,
                   p = p)
+  return(results)
+}
+
+
+################################################
+#### Fissler and Ziegel loss function       ####
+################################################
+
+FZLoss_func <- function(returns,
+                        VaR,
+                        ES,
+                        alpha,
+                        window_width = -1){
+  
+  # Extracting values which should be used
+  include <- (window_width+2):length(returns)
+  r <- returns[include]
+  v <- VaR[include]
+  e <- ES[include]
+  a <- alpha
+  
+  # Calculating loss sequence
+  FZloss_seq <- -(1/(a*e))*ifelse(r <= v,1,0)*(v-r)+(v/e)+log(-e)-1
+  
+  # Calculating mean of loss sequence
+  FZloss_mean <- mean(FZloss_seq, na.rm = TRUE)
+  
+  # Return list with loss sequence and mean of loss sequence
+  result <- list(sequence = FZloss_seq,
+                 mean = FZloss_mean)
+  
+  return(result)
+}
+
+
+##################################################################
+#### Diebold-Mariano test for significant differences in loss ####
+##################################################################
+
+DM_test <- function(basis_loss_sequence,
+                    compare_loss_sequence){
+  
+  # Calculate differential of loss sequences
+  d_ij <- basis_loss_sequence - compare_loss_sequence
+  
+  # Calculate mean of differential
+  d_ij_mean <- mean(d_ij, na.rm = T)
+  
+  # Calculate Newey-West standard error (robust against heteroscedastisity and autocorrelation)
+  sigma_d_ij_mean <- as.double(sqrt(sandwich::NeweyWest(lm(d_ij~1))))
+  
+  # Calculate test statistic (DM ~ N(0,1))
+  DM <- d_ij_mean / sigma_d_ij_mean
+  
+  # Calculate p-value
+  p <- 2 * pnorm(abs(DM), lower.tail = FALSE)
+  
+  # Return list with DM and p
+  results <- list(DM = DM,
+                  p = p)
+  
   return(results)
 }

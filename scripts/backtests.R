@@ -145,6 +145,8 @@ execution_of_Backtests <- function(){
 if(execute_Backtest){
   Backtest.results <- execution_of_Backtests()
   saveRDS(Backtest.results, file=paste0(ifelse(simulation, 'simulated_output/', 'output/'), 'Backtest_results.RData'))
+} else {
+  Backtest.results <- readRDS(paste0(ifelse(simulation, 'simulated_output/', 'output/'), 'Backtest_results.RData'))
 }
 
 
