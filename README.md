@@ -14,7 +14,7 @@ Additional notes:
 I would not recomment to run the program without using subsetting options as explained in main.R.
 I would recomment to either only load the results by setting the parameters accordingly or if one wants to test the program, to utilize subsetting parameters.
 
-1. To only load results: Set execution_of_VaR_ES_forecasting = FALSE and optionally also execute_Backtest = FALSE. It is important to have other_quantities.RData downloaded and stored in output folder if execute_Backtest = TRUE and all parameters as set in published version and as explained in comments
+1. To only load results: Set execution_of_VaR_ES_forecasting = FALSE and optionally also execute_Backtest = FALSE. It is important to have other_quantities.RData downloaded and stored in output folder and all parameters as set in published version and as explained in comments
 2. To run the forecasting, especially utilize the follwing parameters and follow explanations in main.R: number_forecasts, index_include, varspec_include, dist_include
 3. To run model on simulated data, first create simulated_data and simulated_output folders and adjust the follwing parameters: simulation, number_simulations
 

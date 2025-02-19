@@ -1471,6 +1471,19 @@
       ],
       "Hash": "0bcf0c6f274e90ea314b812a6d19a519"
     },
+    "sandwich": {
+      "Package": "sandwich",
+      "Version": "3.1-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "stats",
+        "utils",
+        "zoo"
+      ],
+      "Hash": "072bb2d27425f2a58fe71fe1080676ce"
+    },
     "sass": {
       "Package": "sass",
       "Version": "0.4.9",
