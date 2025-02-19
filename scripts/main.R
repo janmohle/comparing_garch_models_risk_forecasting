@@ -6,12 +6,6 @@
 # To test the program, parameters in 'Sub setting and steering parameters' might have to be changed
 # Important: Please read trough explanations of these parameters before running the program!!
 
-# NOTES:
-# Using parameter of previous shift as starting parameter reduces optimization time a lot buts leads to biases in some models -> not done in final version (but with setting n_compl_opti and new_coef_est_counter still possible)
-# First return in input data has to be NA that the program works correctly!
-# main processing time consumers are optimization, gradiant calculation and integration. Only optimization can really be adjusted. A simple way would be to adjust n_compl_opti, but as mentioned above this leads to biases for some models
-# parallelization would decrease computation time a lot, but conflicts with program logic as it is -> current program relies on sequential execution to work properly -> paralleling could be an improvement for the future
-
 #################################################################################
 ####           General set-up                                                ####
 #################################################################################
@@ -77,7 +71,7 @@ tolerance_lvl = 0.05
 # Input data - has to be higher than parameter window_width (could also be set directly, but setting it with number_forecasts is recommended) (comment out if not needed or if forecast results are only loaded)
 #data_include = 1:(window_width+1+number_forecasts)
 
-# Indices to include (comment out if not needed)
+# Indices to include from indices (comment out if not needed)
 #index_include = c(1,2)
 
 # Variance specifications to include from var.spec.list (comment out if not needed) (Paper includes c(1:11))
@@ -87,10 +81,10 @@ varspec_include = c(1:11)
 dist_include = c(1:7,10,11)
 
 # Should real data or simulated data be used? Set TRUE for simulated data and FALSE for real data (needs to be set)
-# Script used for simulation can be found in scripts/simulate_data.R. For real data folder with name'output' must exist and for simulated data folders 'simulated_data' and 'simulated_output' must exist
+# Script used for simulation can be found in scripts/simulate_data.R. For real data folder with name 'output' must exist and for simulated data folders 'simulated_data' and 'simulated_output' must exist
 simulation = FALSE
 
-# Number of simulations (has to be set if simulation = TRUE) (comment out if if simulation = FALSE)
+# Number of simulations (has to be set if simulation = TRUE) (comment out if simulation = FALSE)
 #number_simulations = 400
 
 # Execution of VaR and ES forecast (has to be set)
@@ -109,21 +103,21 @@ n_compl_opti = 100
 new_coef_est_counter = 1
 
 # Execution of VaR and ES Backtests (has to be set)
-# If TRUE, acktests gets executed, if FALSE, backtest results get loaded
+# If TRUE, backtests gets executed, if FALSE, backtest results get loaded
 execute_Backtest = FALSE
 
 # Plot all calculated models (has to be set)
-plot_all_calc_models = FALSE
+plot_all_calc_models = TRUE
 
 
 # Only set follwing parameters to TRUE if varspec_include = c(1:11); dist_include = c(1:7,10,11); all 4 indices are included, simulation = FALSE, and execute_Backtest = TRUE
 # -> otherwise error would appear
 
 # If TRUE, scripts gets executed which create views of backtests
-execute_view_creation_backtest = FALSE
+execute_view_creation_backtest = TRUE
 
 # If TRUE, script gets executed which calaculates rankings and views based on these rankings
-execute_loss_function_and_ranking = FALSE
+execute_loss_function_and_ranking = TRUE
 
 
 #################################################################################
