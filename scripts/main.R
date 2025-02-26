@@ -292,15 +292,17 @@ if(plot_all_calc_models){
         VaR.ES.plot[[index]][[paste0(speci, '_', dist)]] <- ggplot(data =  data[-1:-(window_width + 2),],
                                                                    mapping = aes(x = Date,
                                                                                  y = Return)) +
-          geom_point(aes(colour = as.factor(Exceeded_VaR))) +
-          geom_line(aes(y = VaR),
-                    col = 'orange') +
-          geom_line(aes(y = ES),
-                    col = 'purple') +
+          geom_point(aes(colour = as.factor(Exceeded_VaR)), size = 0.8) +
+          geom_line(aes(y = VaR, linetype = "VaR"), col = 'orange') +
+          geom_line(aes(y = ES, linetype = "ES"), col = 'purple') +
           scale_color_manual(values = c("1" = "red", "0" = "black"),
                              name = "Exceeded VaR",
                              
                              labels = c("No", "Yes")) +
+          scale_linetype_manual(name = "Risk Measures",
+                                values = c("VaR" = "solid", "ES" = "solid"),
+                                breaks = c('VaR', 'ES'),
+                                guide = guide_legend(override.aes = list(color = c("orange", "purple")))) +
           labs(title = paste0('VaR and ES vs historical returns: ', speci, '_', dist)) +
           theme(plot.title = element_text(hjust = 0.5),
                 panel.background = element_rect(fill = 'white'),
