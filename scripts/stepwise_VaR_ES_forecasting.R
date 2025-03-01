@@ -266,6 +266,9 @@ execution_of_VaR_ES_forecasting_function <- function(){
 ### Execution of VaR ES forecasting if execution_of_VaR_ES_forecasting == TRUE, else loading of results ###
 ###########################################################################################################
 
+# Assign output folder name
+output_folder <- ifelse(simulation, 'simulated_output/', 'output/')
+
 if(execution_of_VaR_ES_forecasting){
   
   # Execution of VaR ES forecasting
@@ -315,7 +318,16 @@ if(execution_of_VaR_ES_forecasting){
   # Loading NA information list (this is list from last execution, so only NA information of data which was processed there is represented!)
   NA.information <- readRDS(paste0(output_folder, 'NA_information.RData'))
   
-  # Loading other.quantities list (this is list from last execution, so only other quantities of data which was processed there are represented!)
+  # If required, step downloads other_quantities.RData from dropbox, because object is too large to store it in handed in folder
+  # other_quantities.RData consists of covariance matrices, gradients of mu & sigma estimates and coefficients for each model and window shift
+  # it is needed for the execution of the robust ES backtests
+  # The large size of around 600 MB is due to the high number of matrices and gradient vectors stored in it
+  if(execute_Backtest & !file.exists(paste0(output_folder, 'other_quantities.RData')) & !simulation & download_other_quantities){
+    options(timeout = 3000)
+    url <- 'https://www.dropbox.com/scl/fi/jx4vwlfs26o1eiec77oml/other_quantities.RData?rlkey=w0zy7g9gfyjb5mga6xuf015p8&st=hid8lesz&dl=1'
+    download.file(url, destfile = paste0(output_folder, 'other_quantities.RData'), mode = 'wb')
+  }
+  # Loading other.quantities list
   other.quantities <- readRDS(paste0(output_folder, 'other_quantities.RData'))
 }
 
@@ -323,3 +335,9 @@ rm(output_folder)
 
 
 
+  
+  
+  
+  
+  
+  

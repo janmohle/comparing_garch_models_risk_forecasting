@@ -75,24 +75,26 @@ execution_of_Backtests <- function(){
         ES_UC_results[['p']] <- c(ES_UC_results[['p']], col_result[['p']])
 
         # Unconditional coverage backtest robust
-        col_result <- ES_uc_backtest(CumVio = index_data[[col]],
-                                     speci_dist = speci_dist,
-                                     tolerance_lvl = tolerance_lvl,
-                                     robust = TRUE,
-                                     index = index,
-                                     cov_matrices = other.quantities[[index]][[speci_dist]][['cov_matrix']],
-                                     window_width = window_width,
-                                     grad_mu = other.quantities[[index]][[speci_dist]][['grad_mu']],
-                                     grad_sigma = other.quantities[[index]][[speci_dist]][['grad_sigma']],
-                                     r = index_data[['Return']],
-                                     mu = index_data[[paste0('mu_', speci_dist)]],
-                                     sigma = index_data[[paste0('sigma_', speci_dist)]],
-                                     skew = index_data[[paste0('skew_', speci_dist)]],
-                                     shape = index_data[[paste0('shape_', speci_dist)]],
-                                     lambda = index_data[[paste0('lambda_', speci_dist)]],
-                                     dist = index_data[[paste0('dist_', speci_dist)]])
-        ES_UC_results_robust[['U']] <- c(ES_UC_results_robust[['U']], col_result[['U']])
-        ES_UC_results_robust[['p']] <- c(ES_UC_results_robust[['p']], col_result[['p']])
+        if(download_other_quantities){
+          col_result <- ES_uc_backtest(CumVio = index_data[[col]],
+                                       speci_dist = speci_dist,
+                                       tolerance_lvl = tolerance_lvl,
+                                       robust = TRUE,
+                                       index = index,
+                                       cov_matrices = other.quantities[[index]][[speci_dist]][['cov_matrix']],
+                                       window_width = window_width,
+                                       grad_mu = other.quantities[[index]][[speci_dist]][['grad_mu']],
+                                       grad_sigma = other.quantities[[index]][[speci_dist]][['grad_sigma']],
+                                       r = index_data[['Return']],
+                                       mu = index_data[[paste0('mu_', speci_dist)]],
+                                       sigma = index_data[[paste0('sigma_', speci_dist)]],
+                                       skew = index_data[[paste0('skew_', speci_dist)]],
+                                       shape = index_data[[paste0('shape_', speci_dist)]],
+                                       lambda = index_data[[paste0('lambda_', speci_dist)]],
+                                       dist = index_data[[paste0('dist_', speci_dist)]])
+          ES_UC_results_robust[['U']] <- c(ES_UC_results_robust[['U']], col_result[['U']])
+          ES_UC_results_robust[['p']] <- c(ES_UC_results_robust[['p']], col_result[['p']])
+        }
 
         # Conditional coverage backtest not robust
         col_result <- ES_cc_backtest(CumVio = index_data[[col]],
@@ -104,25 +106,27 @@ execution_of_Backtests <- function(){
         ES_CC_results[['p']] <- c(ES_CC_results[['p']], col_result[['p']])
         
         # Conditional coverage backtest robust
-        col_result <- ES_cc_backtest(CumVio = index_data[[col]],
-                                     speci_dist = speci_dist,
-                                     tolerance_lvl = tolerance_lvl,
-                                     lags = 5,
-                                     robust = TRUE,
-                                     index = index,
-                                     cov_matrices = other.quantities[[index]][[speci_dist]][['cov_matrix']],
-                                     window_width = window_width,
-                                     grad_mu = other.quantities[[index]][[speci_dist]][['grad_mu']],
-                                     grad_sigma = other.quantities[[index]][[speci_dist]][['grad_sigma']],
-                                     r = index_data[['Return']],
-                                     mu = index_data[[paste0('mu_', speci_dist)]],
-                                     sigma = index_data[[paste0('sigma_', speci_dist)]],
-                                     skew = index_data[[paste0('skew_', speci_dist)]],
-                                     shape = index_data[[paste0('shape_', speci_dist)]],
-                                     lambda = index_data[[paste0('lambda_', speci_dist)]],
-                                     dist = index_data[[paste0('dist_', speci_dist)]])
-        ES_CC_results_robust[['C']] <- c(ES_CC_results_robust[['C']], col_result[['C']])
-        ES_CC_results_robust[['p']] <- c(ES_CC_results_robust[['p']], col_result[['p']])
+        if(download_other_quantities){
+          col_result <- ES_cc_backtest(CumVio = index_data[[col]],
+                                       speci_dist = speci_dist,
+                                       tolerance_lvl = tolerance_lvl,
+                                       lags = 5,
+                                       robust = TRUE,
+                                       index = index,
+                                       cov_matrices = other.quantities[[index]][[speci_dist]][['cov_matrix']],
+                                       window_width = window_width,
+                                       grad_mu = other.quantities[[index]][[speci_dist]][['grad_mu']],
+                                       grad_sigma = other.quantities[[index]][[speci_dist]][['grad_sigma']],
+                                       r = index_data[['Return']],
+                                       mu = index_data[[paste0('mu_', speci_dist)]],
+                                       sigma = index_data[[paste0('sigma_', speci_dist)]],
+                                       skew = index_data[[paste0('skew_', speci_dist)]],
+                                       shape = index_data[[paste0('shape_', speci_dist)]],
+                                       lambda = index_data[[paste0('lambda_', speci_dist)]],
+                                       dist = index_data[[paste0('dist_', speci_dist)]])
+          ES_CC_results_robust[['C']] <- c(ES_CC_results_robust[['C']], col_result[['C']])
+          ES_CC_results_robust[['p']] <- c(ES_CC_results_robust[['p']], col_result[['p']])
+        }
       }
     }
     

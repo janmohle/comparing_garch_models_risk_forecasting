@@ -1,10 +1,13 @@
 #################################################################################
-####           General notes                                                 ####
+####           Important information!!!                                      ####
 #################################################################################
 
-# Program has to be parameterized in 'General parameter setting' and 'Sub setting and steering parameters'
-# To test the program, parameters in 'Sub setting and steering parameters' might have to be changed
-# Important: Please read trough explanations of these parameters before running the program!!
+# Program has to be parameterized in 'General parameter setting', 'Sub setting of input data and specifications' and 'Steering of program routines'.
+# Important: Please read trough explanations of these parameters and set them accordingly before running the program!
+# Current setting loads forecasting and backtesting results without executing the forecasting and backtesting routine.
+# I added parameter values as comments to test the forecasting and backtesting routine on a subset of the data. To use them, uncomment these values, and comment currently uncommented values. Additionally, TRUE and FALSE parameters have to be adjusted according to explanations.
+# If the forecasting results should only be loaded, but the backtesting routine should be executed, program automatically downloads other_quantities.RData from dropbox, as long as download_other_quantities = TRUE. It is a 600 MB list consisting of covariance matrices and gradient vectors needed for robust ES backtests and stored during forecasting routine.
+# If forecasting and / or backtesting routine are executed, currently stored results will be overwritten. I recommend to rename the output folder and add new folder named 'output'.
 
 #################################################################################
 ####           General set-up                                                ####
@@ -43,7 +46,9 @@ source('scripts/functions.R')
 ####           General parameter setting                                     ####
 #################################################################################
 
-# Number of auto-regressive terms for mean model
+# Parameters of this section set general structure of models. Current setting was used for paper. I recommend to leave them as they are!
+
+# Number of autoregressive terms for mean model
 ar = 0
 
 # Number of moving average terms for mean model
@@ -62,63 +67,91 @@ window_width = 750
 tolerance_lvl = 0.05
 
 #################################################################################
-###     Sub setting and steering parameters                                   ###
+###     Sub setting of input data and specifications                          ###
 #################################################################################
 
-# Number of forecasts (comment out if not needed or if forecast results are only loaded)
+# Parameters of this section are used to subset data and model specification. They are especially interesting for program-testing purposes.
+# I added parameters as a comment that can be used to test the forecasting and backtesting routines on a subset of input data and specifications. For that, uncomment them and comment out current parameters.
+
+# Parameter sets the number of forecasts. Can be commented if whole input data should be used, and if forecast results should only be loaded.
+# To test the program on a subset of input data, uncomment it.
 #number_forecasts = 50
 
-# Input data - has to be higher than parameter window_width (could also be set directly, but setting it with number_forecasts is recommended) (comment out if not needed or if forecast results are only loaded)
+# Parameter subsets the input data directly or indirectly based on number_forecasts and window_width. 
+# If input data should be subset to test program, uncomment it.
+# I recommend to leave it dependent on number_forecasts and window_width.
 #data_include = 1:(window_width+1+number_forecasts)
 
-# Indices to include from indices (comment out if not needed)
+# Parameter sets the indices that should be included from variable 'indices'.
+# It can be commented if all indices should be used.
 #index_include = c(1,2)
 
-# Variance specifications to include from var.spec.list (comment out if not needed) (Paper includes c(1:11))
-varspec_include = c(1:11)
+# Parameter sets the GARCH specification that should be included from list 'var.spec.list'.
+# It can be commented if all specifications should be included. Paper includes c(1:11).
+varspec_include = c(1:11) #c(2,3,4,10)
 
-# Distribution assumptions to include from dist.spec.list (comment out if not needed) (Paper includes c(1:7,10,11))
-dist_include = c(1:7,10,11)
+# Parameter sets the distribution assumptions that should be included from 'dist.spec.list'.
+# It can be commented if all distributions should be used. Paper includes c(1:7,10,11).
+dist_include = c(1:7,10,11) #c(1,2,7,11)
 
-# Should real data or simulated data be used? Set TRUE for simulated data and FALSE for real data (needs to be set)
-# Script used for simulation can be found in scripts/simulate_data.R. For real data folder with name 'output' must exist and for simulated data folders 'simulated_data' and 'simulated_output' must exist
-simulation = FALSE
 
-# Number of simulations (has to be set if simulation = TRUE) (comment out if simulation = FALSE)
-#number_simulations = 400
+#################################################################################
+###     Steering of program routines                                          ###
+#################################################################################
 
-# Execution of VaR and ES forecast (has to be set)
-# TRUE: stepwise VaR and ES forecast calculates all over again (takes multiple days to run with full data set! + overwrites old results!!!)
-# FALSE: results are loaded from csv files in output folder - index_include specifies which index data is loaded
-# If one wants to test the program and wants to set this parameter to TRUE, I highly recommend to use subsetting options, especially number_forecasts, index_include, varspec_include and dist_include and to first rename 'output' folder which contains my results to not loose it and then create a new output folder.
+# Parameters steer the execution routines of the program.
+# Current parameter settings load the forecasting and backtesting results from my paper without executing the forecasting and backtesting routine.
+# Important: If forecasting and / or backtesting routine are executed, currently stored results will be overwritten, so I recommend to rename the output folder and add a new folder named 'output' in the head folder of this project.
+
+# Execution of VaR and ES forecasting routine.
+# TRUE: stepwise VaR and ES forecasting gets executed
+# FALSE: result are loaded from csv files in 'output' folder. index_include specifies which index data is loaded
+# On full input data set combined with all specifications, program takes multiple days to run. If forecasting routine should be executed to test it, I highly recommend to subset input data and specifications in section 'Sub setting of input data and specifications'.
 execution_of_VaR_ES_forecasting = FALSE
 
-# Parameter which sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit (has to be set)
-# In cases where new_coef_est_counter = 1, this parameter has no effect!
-# I recommend to leave it as it is!
-n_compl_opti = 100
-
-# Parameter which sets number of times after which fitting is executed without parameter of previous run as starting parameters. It is recommended to set it to 1, since it leads to faster executions but also introduces biases in some models (has to be set)
-# I recommend to leave it as it is!
-new_coef_est_counter = 1
-
-# Execution of VaR and ES Backtests (has to be set)
-# If TRUE, backtests gets executed, if FALSE, backtest results get loaded
+# Execution of VaR and ES backtesting routine.
+# TRUE: Backtesting routine gets executed. If execution_of_VaR_ES_forecasting = FALSE at the same time, and other_quantities.RData doesn't exist output folder, it gets downloaded from dropbox to execute robust ES backtest.
+# FALSE: List called 'Backtest_results.RData' gets loaded from output folder.
 execute_Backtest = FALSE
 
-# Plot all calculated models (has to be set)
-plot_all_calc_models = TRUE
+# If plot_all_calc_models = TRUE, all forecasting results get plot and stored in list 'VaR.ES.plot'. From there, they can be accessed.
+plot_all_calc_models = FALSE
 
-
-# Only set follwing parameters to TRUE if varspec_include = c(1:11); dist_include = c(1:7,10,11); all 4 indices are included, simulation = FALSE, and execute_Backtest = TRUE
-# -> otherwise error would appear
-
-# If TRUE, scripts gets executed which create views of backtests
+# If execute_view_creation_backtest = TRUE, scripts gets executed that create views of backtest results in a data frame and for latex. I used some of these views in my paper.
+# Only set to TRUE if varspec_include = c(1:11); dist_include = c(1:7,10,11); all 4 indices are included; simulation = FALSE. Otherwise errors would appear.
 execute_view_creation_backtest = TRUE
 
-# If TRUE, script gets executed which calaculates rankings and views based on these rankings
+# If TRUE, script gets executed that calculate rankings and views of these rankings in a data frame and for latex. I used some of these views in my paper.
+# Only set to TRUE if varspec_include = c(1:11); dist_include = c(1:7,10,11); all 4 indices are included; simulation = FALSE. Otherwise errors would appear.
+# Additionally, other_quantities.RData has to exist if execution_of_VaR_ES_forecasting = FALSE and execute_Backtest = TRUE.
 execute_loss_function_and_ranking = TRUE
 
+# Parameter decides whether real index data or simulated data should be used
+# TRUE: Input data gets simulated. For that, folder 'simulated_input' and 'simulated_output' have to exist in head folder of this project. Furthermore, number_simulations, number_forecasts and data_include have to exist and execution_of_VaR_ES_forecasting and execute_Backtest should be TRUE.
+# Script used for simulation can be found in scripts/simulate_data.R.
+# FALSE: Real index data is used.
+simulation = FALSE
+
+# Parameter sets number of simulations. It has to be specified if simulation = TRUE.
+#number_simulations = 5
+
+# Manually prevent downloading of other_quantities.RData from dropbox if download_other_quantities=FALSE.
+# other_quantities.RData is needed to execute robust ES backtests in cases where forecasting results are only read in and not executed (execution_of_VaR_ES_forecasting = FALSE).
+# other_quantities.RData consists of covariance matrices, gradients of mu & sigma estimates and coefficients for each model and window shift.
+# The large size of around 600 MB is due to the high number of matrices and gradient vectors stored in it.
+# other_quantities.RData only gets downloaded if other_quantities.RData does not exist in output folder, execute_Backtest=TRUE, execution_of_VaR_ES_forecasting=FALSE, simulation = FALSE and download_other_quantities = TRUE.
+# If all of the above mentioned criterion are true, but other_quantities.RData should still not be downloaded, then set download_other_quantities=FALSE.
+# -> as a result, robust ES backtest do not get executed.
+download_other_quantities = TRUE
+
+# Parameter sets number of window shifts after which complex_ugarchfit should be executed. Explanation can be found in function.R at position of complex_ugarchfit.
+# In cases where new_coef_est_counter = 1, this parameter has no effect!
+# I recommend to leave it as it is, as it is more of a remaining from attempts to speed up the whole program!!
+n_compl_opti = 100
+
+# Parameter sets number of times after which fitting is executed without parameters of previous run as starting parameters. I recommend to set it to 1, as it leads to faster executions but also introduces biases in some models.
+# I recommend to leave it as it is, as it is more of a remaining from attempts to speed up the whole program!!
+new_coef_est_counter = 1
 
 #################################################################################
 ####           General model specification set-up                            ####
