@@ -328,7 +328,9 @@ if(execution_of_VaR_ES_forecasting){
     download.file(url, destfile = paste0(output_folder, 'other_quantities.RData'), mode = 'wb')
   }
   # Loading other.quantities list
-  other.quantities <- readRDS(paste0(output_folder, 'other_quantities.RData'))
+  if(file.exists(paste0(output_folder, 'other_quantities.RData'))){
+    other.quantities <- readRDS(paste0(output_folder, 'other_quantities.RData'))
+  }
 }
 
 rm(output_folder)
