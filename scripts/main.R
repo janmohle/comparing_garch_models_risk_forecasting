@@ -344,7 +344,7 @@ if(plot_all_calc_models){
       }
     }
   }
-  saveRDS(VaR.ES.plot, file=paste0(ifelse(simulation, 'simulated_output/', 'output/'), 'VaR_ES_plot.RData'))
+  saveRDS(VaR.ES.plot, file=paste0(ifelse(simulation, 'simulated_output/', 'output/'), 'VaR_ES_plot.RData'), compress = 'xz')
   rm(index, index_data, speci, dist, data)
 }
 
