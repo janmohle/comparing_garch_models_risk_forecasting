@@ -4,10 +4,10 @@
 
 # Program has to be parameterized in 'General parameter setting', 'Sub setting of input data and specifications' and 'Steering of program routines'.
 # Important: Please read trough explanations of these parameters and set them accordingly before running the program!
-# Current setting loads forecasting and backtesting results without executing the forecasting and backtesting routine.
+# Current setting loads forecasting and backtesting results without executing the forecasting and backtesting routines.
 # I added parameter values as comments to test the forecasting and backtesting routine on a subset of the data. To use them, uncomment these values, and comment currently uncommented values. Additionally, TRUE and FALSE parameters have to be adjusted according to explanations.
 # If the forecasting results should only be loaded, but the backtesting routine should be executed, program automatically downloads other_quantities.RData from dropbox, as long as download_other_quantities = TRUE. It is a 600 MB list consisting of covariance matrices and gradient vectors needed for robust ES backtests and stored during forecasting routine.
-# If forecasting and / or backtesting routine are executed, currently stored results will be overwritten. I recommend to rename the output folder and add new folder named 'output'.
+# If forecasting and / or backtesting routine are executed, currently stored results will be overwritten. I recommend to rename the output folder to keep it and to add a new folder named 'output' into head folder of project.
 
 #################################################################################
 ####           General set-up                                                ####
@@ -46,7 +46,8 @@ source('scripts/functions.R')
 ####           General parameter setting                                     ####
 #################################################################################
 
-# Parameters of this section set general structure of models. Current setting was used for paper. I recommend to leave them as they are!
+# Parameters of this section set general structure of models. Current setting was used for paper.
+# I recommend to leave them as they are!
 
 # Number of autoregressive terms for mean model
 ar = 0
@@ -75,6 +76,7 @@ tolerance_lvl = 0.05
 
 # Parameter sets the number of forecasts. Can be commented if whole input data should be used, and if forecast results should only be loaded.
 # To test the program on a subset of input data, uncomment it.
+# If backtest should also be executed on subset of input data, a certain number of forecasts is needed to have exceedences (min 50-100).
 #number_forecasts = 50
 
 # Parameter subsets the input data directly or indirectly based on number_forecasts and window_width. 
@@ -84,15 +86,16 @@ tolerance_lvl = 0.05
 
 # Parameter sets the indices that should be included from variable 'indices'.
 # It can be commented if all indices should be used.
+# If indices should be subset to test program, uncomment it.
 #index_include = c(1,2)
 
 # Parameter sets the GARCH specification that should be included from list 'var.spec.list'.
 # It can be commented if all specifications should be included. Paper includes c(1:11).
-varspec_include = c(1:11) #c(2,3,4,10)
+varspec_include = c(1:11) #c(2,3)
 
 # Parameter sets the distribution assumptions that should be included from 'dist.spec.list'.
 # It can be commented if all distributions should be used. Paper includes c(1:7,10,11).
-dist_include = c(1:7,10,11) #c(1,2,7,11)
+dist_include = c(1:7,10,11) #c(1,2)
 
 
 #################################################################################
@@ -101,16 +104,16 @@ dist_include = c(1:7,10,11) #c(1,2,7,11)
 
 # Parameters steer the execution routines of the program.
 # Current parameter settings load the forecasting and backtesting results from my paper without executing the forecasting and backtesting routine.
-# Important: If forecasting and / or backtesting routine are executed, currently stored results will be overwritten, so I recommend to rename the output folder and add a new folder named 'output' in the head folder of this project.
+# Important: If forecasting and / or backtesting routine are executed, currently stored results will be overwritten, so I recommend to rename the output folder and add a new folder named 'output' into the head folder of this project.
 
 # Execution of VaR and ES forecasting routine.
 # TRUE: stepwise VaR and ES forecasting gets executed
-# FALSE: result are loaded from csv files in 'output' folder. index_include specifies which index data is loaded
+# FALSE: result are loaded from csv files in 'output' folder. index_include specifies which index data is loaded.
 # On full input data set combined with all specifications, program takes multiple days to run. If forecasting routine should be executed to test it, I highly recommend to subset input data and specifications in section 'Sub setting of input data and specifications'.
 execution_of_VaR_ES_forecasting = FALSE
 
 # Execution of VaR and ES backtesting routine.
-# TRUE: Backtesting routine gets executed. If execution_of_VaR_ES_forecasting = FALSE at the same time, and other_quantities.RData doesn't exist output folder, it gets downloaded from dropbox to execute robust ES backtest.
+# TRUE: Backtesting routine gets executed. If execution_of_VaR_ES_forecasting = FALSE at the same time, and other_quantities.RData doesn't exist in output folder, it gets downloaded from dropbox to execute robust ES backtest.
 # FALSE: List called 'Backtest_results.RData' gets loaded from output folder.
 execute_Backtest = FALSE
 
@@ -127,7 +130,7 @@ execute_view_creation_backtest = TRUE
 execute_loss_function_and_ranking = TRUE
 
 # Parameter decides whether real index data or simulated data should be used
-# TRUE: Input data gets simulated. For that, folder 'simulated_input' and 'simulated_output' have to exist in head folder of this project. Furthermore, number_simulations, number_forecasts and data_include have to exist and execution_of_VaR_ES_forecasting and execute_Backtest should be TRUE.
+# TRUE: Input data gets simulated. For that, folder 'simulated_data' and 'simulated_output' have to exist in head folder of this project. Furthermore, number_simulations, number_forecasts and data_include have to exist and execution_of_VaR_ES_forecasting and execute_Backtest should be TRUE.
 # Script used for simulation can be found in scripts/simulate_data.R.
 # FALSE: Real index data is used.
 simulation = FALSE
@@ -344,7 +347,7 @@ if(plot_all_calc_models){
       }
     }
   }
-  saveRDS(VaR.ES.plot, file=paste0(ifelse(simulation, 'simulated_output/', 'output/'), 'VaR_ES_plot.RData'), compress = 'xz')
+  saveRDS(VaR.ES.plot, file=paste0(ifelse(simulation, 'simulated_output/', 'output/'), 'VaR_ES_plot.RData'), compress = 'bzip2')
   rm(index, index_data, speci, dist, data)
 }
 

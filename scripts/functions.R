@@ -403,7 +403,7 @@ predict_VaR_ES_1_ahead <- function(data,
   # Return NA if fitting doesn't work
   if(num_window_shift %% n_compl_opti != 0 | new_coef_est_counter == 1){
     # More efficient and faster solver, since solnp is tried first with parameters of previous window as starting parameters (hybrid tries: solnp -> nlminb -> gosolnp -> nloptr)
-    # If new_coef_est_counter = 1, preveous parameters are never used
+    # If new_coef_est_counter = 1, previous parameters are never used
     # solver.control specified for gosolnp and nloptr which are used if previous optimizer fail
     fit <- tryCatch(
       {
