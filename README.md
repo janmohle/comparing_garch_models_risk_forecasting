@@ -1,4 +1,6 @@
-This is a repository for my bachelor thesis: Comparing Different GARCH Models with Respect to Financial Risk Forecasting
+This is a repository for my bachelor thesis: "Comparing Different GARCH Models with Respect to Financial Risk Forecasting"
+
+The written text of my thesis can be found in 00_text.pdf.
 
 Instructions how to run the code:
 
